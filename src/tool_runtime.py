@@ -1,0 +1,59 @@
+"""Shared runtime wrapper for tool execution."""
+
+from __future__ import annotations
+
+import time
+from collections.abc import Awaitable, Callable
+from typing import Any
+
+from .config import Config
+from .errors import to_mcp_error
+from .log_config import get_logger
+from .metrics import observe_tool_failure, observe_tool_success
+from .observability import clear_request_id, ensure_request_id, error_response, success_response
+from .response_normalization import normalize_keys_to_snake_case
+
+logger = get_logger()
+
+
+async def execute_tool(
+    tool_name: str,
+    operation: Callable[[], Awaitable[Any]],
+    *,
+    context: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Execute a tool with common validation/error/logging behavior."""
+    request_id = ensure_request_id()
+    start = time.perf_counter()
+    context_payload = context or {}
+    try:
+        result = await operation()
+        if Config.ACCUBID_RESPONSE_SNAKE_CASE:
+            result = normalize_keys_to_snake_case(result)
+        duration_seconds = time.perf_counter() - start
+        duration_ms = int(duration_seconds * 1000)
+        logger.info(
+            "tool_success tool=%s request_id=%s duration_ms=%s context=%s",
+            tool_name,
+            request_id,
+            duration_ms,
+            context_payload,
+        )
+        observe_tool_success(tool_name, duration_seconds)
+        return success_response(result)
+    except Exception as exc:
+        duration_seconds = time.perf_counter() - start
+        duration_ms = int(duration_seconds * 1000)
+        app_error = to_mcp_error(exc)
+        logger.exception(
+            "tool_failed tool=%s request_id=%s duration_ms=%s code=%s context=%s",
+            tool_name,
+            request_id,
+            duration_ms,
+            app_error.code,
+            context_payload,
+        )
+        observe_tool_failure(tool_name, duration_seconds)
+        return error_response(app_error)
+    finally:
+        clear_request_id()

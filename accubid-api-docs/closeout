@@ -1,0 +1,1368 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Anywhere Closeout Service",
+    "description": "A service to get Closeout information for Anywhere",
+    "version": "1.0"
+  },
+  "servers": [
+    {
+      "url": "/closeoutservice"
+    }
+  ],
+  "paths": {
+    "/BidBreakdown/{databaseToken}/{bidSummaryID}/{bidBreakdownViewID}": {
+      "get": {
+        "tags": [
+          "BidBreakdown"
+        ],
+        "summary": "Get the paginated Bid Breakdown Details by passing DatabaseToken, BidSummaryId and Bid Breakdown View.",
+        "parameters": [
+          {
+            "name": "pageIndex",
+            "in": "query",
+            "description": "pageNumber to retrieve, default is 0 (the first page)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "databaseToken",
+            "in": "path",
+            "description": "Token for the database, retrived from the database api.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "bidSummaryID",
+            "in": "path",
+            "description": "id of requested bidsummary",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "bidBreakdownViewID",
+            "in": "path",
+            "description": "id of requested bidbreakdown view",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The example was retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BidBreakdownLineItemDataPaginationHeader"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "If the parameter(s) are invalid."
+          },
+          "401": {
+            "description": "The request could not be authorized."
+          },
+          "403": {
+            "description": "The request was explicitly forbidden."
+          },
+          "404": {
+            "description": "If a needed reference is not found."
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/BidBreakdownView/{databaseToken}/{estimateID}": {
+      "get": {
+        "tags": [
+          "BidBreakdownView"
+        ],
+        "summary": "Get the List of Bid Breakdown Views by passing DatabaseToken and EstimateId.",
+        "parameters": [
+          {
+            "name": "databaseToken",
+            "in": "path",
+            "description": "Token for the database, retrived from the database api.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "estimateID",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The example was retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BidBreakdownViewResponse"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "If the parameter(s) are invalid."
+          },
+          "401": {
+            "description": "The request could not be authorized."
+          },
+          "403": {
+            "description": "The request was explicitly forbidden."
+          },
+          "404": {
+            "description": "If a needed reference is not found."
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/FinalPrice/{databaseToken}/{bidSummaryID}": {
+      "get": {
+        "tags": [
+          "FinalPrice"
+        ],
+        "summary": "Get a Final Price by passing DatabaseToken and BidSummaryId.",
+        "parameters": [
+          {
+            "name": "databaseToken",
+            "in": "path",
+            "description": "Token for the database, retrived from the database api.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "bidSummaryID",
+            "in": "path",
+            "description": "id of requested bidsummary",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The example was retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FinalPriceData"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "If the parameter(s) are invalid."
+          },
+          "401": {
+            "description": "The request could not be authorized."
+          },
+          "403": {
+            "description": "The request was explicitly forbidden."
+          },
+          "404": {
+            "description": "If a needed reference is not found."
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AutoAllocationMethod": {
+        "enum": [
+          1,
+          2,
+          3
+        ],
+        "type": "integer",
+        "format": "int32"
+      },
+      "BidBreakdownGroupCategory": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "id": {
+            "type": "string",
+            "nullable": true
+          },
+          "order": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "BidBreakdownGroupOption": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "order": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "BidBreakdownLineItemData": {
+        "type": "object",
+        "properties": {
+          "bidBreakdownViewId": {
+            "type": "string",
+            "nullable": true
+          },
+          "bidSummaryId": {
+            "type": "string",
+            "nullable": true
+          },
+          "groupedCategories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BidBreakdownGroupCategory"
+            },
+            "nullable": true
+          },
+          "rowType": {
+            "type": "string",
+            "nullable": true
+          },
+          "totalAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "totalMaterialAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "totalLaborHours": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "totalLaborAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "fieldLaborHours": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "fieldLaborAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "shopLaborHours": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "shopLaborAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "incidentalLaborHours": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "incidentalLaborAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "laborFactoringHours": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "laborFactoringAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "laborEscalationAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "indirectLaborHours": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "indirectLaborAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "equipment": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "generalExpenses": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "subcontracts": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "quotes": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "overhead": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "markUp": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "defineAdj": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "roundingAdj": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "unit": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "BidBreakdownLineItemDataPaginationHeader": {
+        "type": "object",
+        "properties": {
+          "pageIndex": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalItems": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BidBreakdownLineItemData"
+            },
+            "nullable": true
+          },
+          "links": {
+            "$ref": "#/components/schemas/PaginationLinks"
+          }
+        },
+        "additionalProperties": false
+      },
+      "BidBreakdownViewResponse": {
+        "type": "object",
+        "properties": {
+          "bidBreakdownViewId": {
+            "type": "string",
+            "description": "Bid Breakdown View Id unique with in DB",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "description": "View Name with in an Estimate",
+            "nullable": true
+          },
+          "order": {
+            "type": "integer",
+            "description": "Visual Order of the View",
+            "format": "int32",
+            "nullable": true
+          },
+          "groupOptions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BidBreakdownGroupOption"
+            },
+            "description": "Each Bid Breakdown View is grouped by at least one level.\r\nThis list contains all the groupings.",
+            "nullable": true
+          },
+          "autoAllocateRemainderIncidentalLabor": {
+            "type": "boolean",
+            "description": "Whether Incidental Labor unallocated dollars and hours should be automaticvally allocated base on AutoAllocationMethod.",
+            "nullable": true
+          },
+          "autoAllocateRemainderLaborFactoring": {
+            "type": "boolean",
+            "description": "Whether Labor Factoring unallocated dollars and hours should be automaticvally allocated base on AutoAllocationMethod.",
+            "nullable": true
+          },
+          "autoAllocateRemainderLaborEscalation": {
+            "type": "boolean",
+            "description": "Whether Labor Escalation unallocated dollars should be automaticvally allocated base on AutoAllocationMethod.",
+            "nullable": true
+          },
+          "autoAllocateRemainderIndirectLabor": {
+            "type": "boolean",
+            "description": "Whether Indirect Labor unallocated dollars and hours should be automaticvally allocated base on AutoAllocationMethod.",
+            "nullable": true
+          },
+          "autoAllocateRemainderSubcontracts": {
+            "type": "boolean",
+            "description": "Whether Subcontracts unallocated dollars should be automaticvally allocated base on AutoAllocationMethod.",
+            "nullable": true
+          },
+          "autoAllocateRemainderEquipment": {
+            "type": "boolean",
+            "description": "Whether Equipment unallocated dollars should be automaticvally allocated base on AutoAllocationMethod.",
+            "nullable": true
+          },
+          "autoAllocateRemainderGeneralExpenses": {
+            "type": "boolean",
+            "description": "Whether General Expenses unallocated dollars should be automaticvally allocated base on AutoAllocationMethod.",
+            "nullable": true
+          },
+          "autoAllocateRemainderQuotes": {
+            "type": "boolean",
+            "description": "Whether Quotes unallocated dollars should be automaticvally allocated base on AutoAllocationMethod.",
+            "nullable": true
+          },
+          "roundTotal": {
+            "$ref": "#/components/schemas/RoundingOptions"
+          },
+          "autoAllocationMethod": {
+            "$ref": "#/components/schemas/AutoAllocationMethod"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CustomAdj": {
+        "type": "object",
+        "properties": {
+          "calcAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "calcPercent": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "adjAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "adjPercent": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "modAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "modPercent": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "percentOfFinalPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "code": {
+            "type": "string",
+            "nullable": true
+          },
+          "visualOrder": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "id": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "billingMethod": {
+            "type": "string",
+            "nullable": true
+          },
+          "rangeList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Range"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "FPLine": {
+        "type": "object",
+        "properties": {
+          "calcAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "calcPercent": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "adjAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "adjPercent": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "modAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "modPercent": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "percentOfFinalPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "code": {
+            "type": "string",
+            "nullable": true
+          },
+          "visualOrder": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "id": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "FinalPriceData": {
+        "type": "object",
+        "properties": {
+          "calcAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "calcPercent": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "adjAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "adjPercent": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "modAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "modPercent": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "percentOfFinalPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "code": {
+            "type": "string",
+            "nullable": true
+          },
+          "visualOrder": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "id": {
+            "type": "string",
+            "nullable": true
+          },
+          "sellingPrice": {
+            "$ref": "#/components/schemas/SellingPrice"
+          },
+          "tax": {
+            "$ref": "#/components/schemas/Tax"
+          }
+        },
+        "additionalProperties": false
+      },
+      "LaborCalc": {
+        "type": "object",
+        "properties": {
+          "calcAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "calcPercent": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "adjAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "adjPercent": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "modAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "modPercent": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "percentOfFinalPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "code": {
+            "type": "string",
+            "nullable": true
+          },
+          "visualOrder": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "id": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "basedOn": {
+            "type": "string",
+            "nullable": true
+          },
+          "rate": {
+            "type": "number",
+            "format": "double"
+          },
+          "fieldLaborIncluded": {
+            "type": "boolean"
+          },
+          "shopLaborIncluded": {
+            "type": "boolean"
+          },
+          "incidentalLaborIncluded": {
+            "type": "boolean"
+          },
+          "laborFactoringIncluded": {
+            "type": "boolean"
+          },
+          "indirectLaborIncluded": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "LaborTotal": {
+        "type": "object",
+        "properties": {
+          "calcAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "calcPercent": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "adjAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "adjPercent": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "modAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "modPercent": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "percentOfFinalPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "code": {
+            "type": "string",
+            "nullable": true
+          },
+          "visualOrder": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "id": {
+            "type": "string",
+            "nullable": true
+          },
+          "fieldLabor": {
+            "$ref": "#/components/schemas/FPLine"
+          },
+          "shopLabor": {
+            "$ref": "#/components/schemas/FPLine"
+          },
+          "incidentalLabor": {
+            "$ref": "#/components/schemas/FPLine"
+          },
+          "laborFactoring": {
+            "$ref": "#/components/schemas/FPLine"
+          },
+          "laborEsclation": {
+            "$ref": "#/components/schemas/FPLine"
+          },
+          "indirectLabor": {
+            "$ref": "#/components/schemas/FPLine"
+          },
+          "laborTax": {
+            "$ref": "#/components/schemas/FPLine"
+          }
+        },
+        "additionalProperties": false
+      },
+      "MaterialTotal": {
+        "type": "object",
+        "properties": {
+          "calcAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "calcPercent": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "adjAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "adjPercent": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "modAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "modPercent": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "percentOfFinalPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "code": {
+            "type": "string",
+            "nullable": true
+          },
+          "visualOrder": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "id": {
+            "type": "string",
+            "nullable": true
+          },
+          "databaseMaterial": {
+            "$ref": "#/components/schemas/FPLine"
+          },
+          "materialAdjustment": {
+            "$ref": "#/components/schemas/FPLine"
+          },
+          "materialTax": {
+            "$ref": "#/components/schemas/FPLine"
+          }
+        },
+        "additionalProperties": false
+      },
+      "NetCost": {
+        "type": "object",
+        "properties": {
+          "calcAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "calcPercent": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "adjAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "adjPercent": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "modAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "modPercent": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "percentOfFinalPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "code": {
+            "type": "string",
+            "nullable": true
+          },
+          "visualOrder": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "id": {
+            "type": "string",
+            "nullable": true
+          },
+          "primeCost": {
+            "$ref": "#/components/schemas/PrimeCost"
+          },
+          "totalOverhead": {
+            "$ref": "#/components/schemas/TotalOverhead"
+          }
+        },
+        "additionalProperties": false
+      },
+      "PaginationLinks": {
+        "type": "object",
+        "properties": {
+          "self": {
+            "type": "string",
+            "nullable": true
+          },
+          "first": {
+            "type": "string",
+            "nullable": true
+          },
+          "next": {
+            "type": "string",
+            "nullable": true
+          },
+          "prev": {
+            "type": "string",
+            "nullable": true
+          },
+          "last": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "PrimeCost": {
+        "type": "object",
+        "properties": {
+          "calcAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "calcPercent": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "adjAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "adjPercent": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "modAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "modPercent": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "percentOfFinalPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "code": {
+            "type": "string",
+            "nullable": true
+          },
+          "visualOrder": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "id": {
+            "type": "string",
+            "nullable": true
+          },
+          "materialTotal": {
+            "$ref": "#/components/schemas/MaterialTotal"
+          },
+          "laborTotal": {
+            "$ref": "#/components/schemas/LaborTotal"
+          },
+          "equipment": {
+            "$ref": "#/components/schemas/FPLine"
+          },
+          "generalExpenses": {
+            "$ref": "#/components/schemas/FPLine"
+          },
+          "subcontracts": {
+            "$ref": "#/components/schemas/FPLine"
+          },
+          "quotes": {
+            "$ref": "#/components/schemas/FPLine"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Range": {
+        "type": "object",
+        "properties": {
+          "adjPercent": {
+            "type": "number",
+            "format": "double"
+          },
+          "overAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "toAmount": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "additionalProperties": false
+      },
+      "RoundingOptions": {
+        "enum": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "type": "integer",
+        "format": "int32"
+      },
+      "SellingPrice": {
+        "type": "object",
+        "properties": {
+          "calcAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "calcPercent": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "adjAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "adjPercent": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "modAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "modPercent": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "percentOfFinalPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "code": {
+            "type": "string",
+            "nullable": true
+          },
+          "visualOrder": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "id": {
+            "type": "string",
+            "nullable": true
+          },
+          "netCost": {
+            "$ref": "#/components/schemas/NetCost"
+          },
+          "totalMarkUp": {
+            "$ref": "#/components/schemas/TotalMarkup"
+          },
+          "jobExpense": {
+            "$ref": "#/components/schemas/CustomAdj"
+          },
+          "financing": {
+            "$ref": "#/components/schemas/CustomAdj"
+          },
+          "bonding": {
+            "$ref": "#/components/schemas/CustomAdj"
+          },
+          "finalAdj": {
+            "$ref": "#/components/schemas/FPLine"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Tax": {
+        "type": "object",
+        "properties": {
+          "calcAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "calcPercent": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "adjAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "adjPercent": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "modAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "modPercent": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "percentOfFinalPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "code": {
+            "type": "string",
+            "nullable": true
+          },
+          "visualOrder": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "id": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "TotalMarkup": {
+        "type": "object",
+        "properties": {
+          "calcAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "calcPercent": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "adjAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "adjPercent": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "modAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "modPercent": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "percentOfFinalPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "code": {
+            "type": "string",
+            "nullable": true
+          },
+          "visualOrder": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "id": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "materialMarkup": {
+            "$ref": "#/components/schemas/FPLine"
+          },
+          "laborMarkup": {
+            "$ref": "#/components/schemas/LaborCalc"
+          },
+          "equipmentMarkup": {
+            "$ref": "#/components/schemas/FPLine"
+          },
+          "generalExpensesMarkup": {
+            "$ref": "#/components/schemas/FPLine"
+          },
+          "subcontractsMarkup": {
+            "$ref": "#/components/schemas/FPLine"
+          },
+          "quotesMarkup": {
+            "$ref": "#/components/schemas/FPLine"
+          },
+          "adjustmentMarkup": {
+            "$ref": "#/components/schemas/FPLine"
+          },
+          "basedOn": {
+            "type": "string",
+            "nullable": true
+          },
+          "laborRiskRationPercent": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "additionalProperties": false
+      },
+      "TotalOverhead": {
+        "type": "object",
+        "properties": {
+          "calcAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "calcPercent": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "adjAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "adjPercent": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "modAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "modPercent": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "percentOfFinalPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "code": {
+            "type": "string",
+            "nullable": true
+          },
+          "visualOrder": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "id": {
+            "type": "string",
+            "nullable": true
+          },
+          "materialOverhead": {
+            "$ref": "#/components/schemas/FPLine"
+          },
+          "laborOverhead": {
+            "$ref": "#/components/schemas/LaborCalc"
+          },
+          "equipmentOverhead": {
+            "$ref": "#/components/schemas/FPLine"
+          },
+          "generalExpensesOverhead": {
+            "$ref": "#/components/schemas/FPLine"
+          },
+          "subcontractsOverhead": {
+            "$ref": "#/components/schemas/FPLine"
+          },
+          "quotesOverhead": {
+            "$ref": "#/components/schemas/FPLine"
+          },
+          "adjustmentOverhead": {
+            "$ref": "#/components/schemas/FPLine"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "securitySchemes": {
+      "Bearer": {
+        "type": "apiKey",
+        "description": "<p>Enter into the value field the word 'Bearer', a space, and the TID access token.<br>Example: Bearer 409b57d4c516de618a95dfa9e6ca92dd<p>Logging out does not log you out of TID",
+        "name": "Authorization",
+        "in": "header"
+      }
+    }
+  }
+}

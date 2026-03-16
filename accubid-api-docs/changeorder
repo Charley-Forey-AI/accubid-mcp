@@ -1,0 +1,1194 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Anywhere ChangeOrder Service",
+    "description": "A service to get ChangeOrder information for Anywhere",
+    "version": "1.0"
+  },
+  "servers": [
+    {
+      "url": "/changeorderservice"
+    }
+  ],
+  "paths": {
+    "/ContractCostDistribution/{databaseToken}/{contractID}": {
+      "get": {
+        "tags": [
+          "ContractCostDistribution"
+        ],
+        "summary": "Gets a list of cost distributions for a contract.",
+        "parameters": [
+          {
+            "name": "databaseToken",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "contractID",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The list was successfully returned.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ContractCostDistribution"
+                  }
+                }
+              }
+            }
+          },
+          "204": {
+            "description": "No licencing information was found for the user.  A custom key will also be in the reply header called \"X-No-Content-Reason\"",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The request could not be authorized.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "A needed reference is not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests from this IP address.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An internal server error occurred.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/ContractQuoteLabels/{databaseToken}/{contractID}": {
+      "get": {
+        "tags": [
+          "ContractQuoteLabels"
+        ],
+        "summary": "Gets a list of quote labels for a contract.",
+        "parameters": [
+          {
+            "name": "databaseToken",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "contractID",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The list was successfully returned.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ContractColumnLabel"
+                  }
+                }
+              }
+            }
+          },
+          "204": {
+            "description": "No licencing information was found for the user.  A custom key will also be in the reply header called \"X-No-Content-Reason\"",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The request could not be authorized.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "A needed reference is not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests from this IP address.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An internal server error occurred.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/Contracts/{databaseToken}/{projectID}": {
+      "get": {
+        "tags": [
+          "Contracts"
+        ],
+        "summary": "Gets a list of contracts for a project.",
+        "parameters": [
+          {
+            "name": "databaseToken",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "projectID",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The list was successfully returned.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Contract"
+                  }
+                }
+              }
+            }
+          },
+          "204": {
+            "description": "No licencing information was found for the user.  A custom key will also be in the reply header called \"X-No-Content-Reason\"",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The request could not be authorized.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "A needed reference is not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests from this IP address.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An internal server error occurred.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/ContractStatuses/{databaseToken}/{contractID}": {
+      "get": {
+        "tags": [
+          "ContractStatuses"
+        ],
+        "summary": "Gets a list of statuses for a contract.",
+        "parameters": [
+          {
+            "name": "databaseToken",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "contractID",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The list was successfully returned.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ContractStatus"
+                  }
+                }
+              }
+            }
+          },
+          "204": {
+            "description": "No licencing information was found for the user.  A custom key will also be in the reply header called \"X-No-Content-Reason\"",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The request could not be authorized.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "A needed reference is not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests from this IP address.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An internal server error occurred.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/ContractSubcontractLabels/{databaseToken}/{contractID}": {
+      "get": {
+        "tags": [
+          "ContractSubcontractLabels"
+        ],
+        "summary": "Gets a list of subcontract labels for a contract.",
+        "parameters": [
+          {
+            "name": "databaseToken",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "contractID",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The list was successfully returned.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ContractColumnLabel"
+                  }
+                }
+              }
+            }
+          },
+          "204": {
+            "description": "No licencing information was found for the user.  A custom key will also be in the reply header called \"X-No-Content-Reason\"",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The request could not be authorized.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "A needed reference is not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests from this IP address.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An internal server error occurred.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/ExtensionItemDetailsFileSignalR/{databaseToken}/{pcoID}/{connectionID}": {
+      "get": {
+        "tags": [
+          "ExtensionItemDetailsFileSignalR"
+        ],
+        "summary": "Get extension item details file with SignalR.",
+        "description": "This api will get all extension item details and send a SignalR message with a URL for a file that can be downloaded which will contain all the rows for the extension item details.",
+        "parameters": [
+          {
+            "name": "databaseToken",
+            "in": "path",
+            "description": "Token for the database, retrived from the database api.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "pcoID",
+            "in": "path",
+            "description": "id of requested PCO",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "connectionID",
+            "in": "path",
+            "description": "SignalR connection ID for the client",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "If the parameter(s) are invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "The example was retrieved."
+          },
+          "401": {
+            "description": "The request could not be authorized."
+          },
+          "403": {
+            "description": "The request was explicitly forbidden."
+          },
+          "404": {
+            "description": "If a needed reference is not found."
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/NotificationTest/{connectionID}": {
+      "get": {
+        "tags": [
+          "NotificationTest"
+        ],
+        "summary": "Send test message for SignalR connection.",
+        "description": "This api will send a test message via SignalR to test the SignalR connection.",
+        "parameters": [
+          {
+            "name": "connectionID",
+            "in": "path",
+            "description": "SignalR connection ID for the client",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The example was retrieved."
+          }
+        }
+      }
+    },
+    "/PCO/{databaseToken}/{PCOID}": {
+      "get": {
+        "tags": [
+          "PCO"
+        ],
+        "summary": "Gets PCO info.",
+        "parameters": [
+          {
+            "name": "databaseToken",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "pcoID",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The list was successfully returned.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PCO"
+                }
+              }
+            }
+          },
+          "204": {
+            "description": "No licencing information was found for the user.  A custom key will also be in the reply header called \"X-No-Content-Reason\"",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The request could not be authorized.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "A needed reference is not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests from this IP address.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An internal server error occurred.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/PCOs/{databaseToken}/{contractID}": {
+      "get": {
+        "tags": [
+          "PCOs"
+        ],
+        "summary": "Gets a list of PCO's for a contract.",
+        "parameters": [
+          {
+            "name": "databaseToken",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "contractID",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The list was successfully returned.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PCO"
+                  }
+                }
+              }
+            }
+          },
+          "204": {
+            "description": "No licencing information was found for the user.  A custom key will also be in the reply header called \"X-No-Content-Reason\"",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The request could not be authorized.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "A needed reference is not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests from this IP address.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An internal server error occurred.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Contract": {
+        "type": "object",
+        "properties": {
+          "contractID": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "ContractID": {
+            "type": "string",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "number": {
+            "type": "string",
+            "nullable": true
+          },
+          "date": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "estimates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Estimate"
+            },
+            "nullable": true
+          },
+          "baseContractAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "changeOrderAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "totalAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "coLaborHours": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "bcLaborHours": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "totalLaborHours": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ContractColumnLabel": {
+        "type": "object",
+        "properties": {
+          "index": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "enumVName": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ContractCostDistribution": {
+        "type": "object",
+        "properties": {
+          "estimateID": {
+            "type": "string",
+            "nullable": true
+          },
+          "estimateName": {
+            "type": "string",
+            "nullable": true
+          },
+          "estimateNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "BidSummaryID": {
+            "type": "string",
+            "nullable": true
+          },
+          "bidSummaryName": {
+            "type": "string",
+            "nullable": true
+          },
+          "type": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "vendor": {
+            "type": "string",
+            "nullable": true
+          },
+          "costDistribution": {
+            "type": "string",
+            "nullable": true
+          },
+          "cost": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ContractStatus": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "IncludeInCOToDate": {
+            "type": "boolean",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "CustomColumn": {
+        "type": "object",
+        "properties": {
+          "index": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "value": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "Estimate": {
+        "type": "object",
+        "properties": {
+          "contractID": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "jobID": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "estimateID": {
+            "type": "string",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "PCO": {
+        "type": "object",
+        "properties": {
+          "totalRows": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "jobID": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "pcoID": {
+            "type": "string",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "number": {
+            "type": "string",
+            "nullable": true
+          },
+          "isDeleted": {
+            "type": "boolean"
+          },
+          "bidDueDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "dateCreated": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "projectStartDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "nullable": true
+          },
+          "isFrozen": {
+            "type": "boolean"
+          },
+          "dateFrozen": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "changeOrderNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "changeOrderDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "sellingPrice": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "materialAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "directLaborAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "indirectLaborAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "equipmentAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "generalExpensesAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "subcontractsAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "quotesAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "overheadMarkupAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "globalTaxAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "totalAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "overheadMarkupPct": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "laborHours": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "subs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CustomColumn"
+            },
+            "nullable": true
+          },
+          "quotes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CustomColumn"
+            },
+            "nullable": true
+          },
+          "referenceFields": {
+            "type": "object",
+            "additionalProperties": { },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "securitySchemes": {
+      "Bearer": {
+        "type": "apiKey",
+        "description": "<p>Enter into the value field the word 'Bearer', a space, and the TID access token.<br>Example: Bearer 409b57d4c516de618a95dfa9e6ca92dd<p>Logging out does not log you out of TID",
+        "name": "Authorization",
+        "in": "header"
+      }
+    }
+  }
+}

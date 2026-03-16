@@ -1,0 +1,393 @@
+schema_version: 1
+tools:
+  - name: list_databases
+    action_type: read
+    domain: database
+    description: List databases available to the authenticated account.
+    when_to_use: Call first to discover databaseToken values for all other tools.
+    expected_input: No input.
+    expected_output: Array of database objects including token, databaseName, and companyName.
+    keywords: [database, token, bootstrap, list]
+    examples: list_databases
+    related_tools: [list_projects, list_estimates]
+
+  - name: list_folders
+    action_type: read
+    domain: project
+    description: List root or child folders for a database.
+    when_to_use: Use before creating projects or when browsing folder structure.
+    expected_input: database_token required, parent_folder_id optional.
+    expected_output: Array of folder records.
+    keywords: [folders, hierarchy, project]
+    examples: list_folders(database_token="...")
+    related_tools: [create_folder, create_project]
+
+  - name: create_folder
+    action_type: create_update
+    domain: project
+    description: Create a folder in project service.
+    when_to_use: Use when you need a parent location for new projects.
+    expected_input: database_token, description, optional parent_folder_id.
+    expected_output: Create result with folderID.
+    keywords: [create, folder, project]
+    examples: create_folder(database_token="...", description="Bid 2026")
+    related_tools: [list_folders]
+
+  - name: list_projects
+    action_type: read
+    domain: project
+    description: List projects for a database token.
+    when_to_use: Use to discover projectID values.
+    expected_input: database_token, optional search/sort_by/sort_direction and pagination.
+    expected_output: Array of project records.
+    keywords: [projects, list, projectID]
+    examples: list_projects(database_token="...")
+    related_tools: [get_project, list_estimates]
+
+  - name: get_project
+    action_type: read
+    domain: project
+    description: Get detailed project info.
+    when_to_use: Use after list_projects when full metadata is needed.
+    expected_input: database_token and project_id.
+    expected_output: Project object with site details and folderID.
+    keywords: [project, details]
+    examples: get_project(database_token="...", project_id="...")
+    related_tools: [list_projects]
+
+  - name: create_project
+    action_type: create_update
+    domain: project
+    description: Create a project.
+    when_to_use: Use to provision a new project under a folder.
+    expected_input: database_token, folder_id, name, number.
+    expected_output: Create result with projectID.
+    keywords: [project, create]
+    examples: create_project(database_token="...", folder_id="...", name="A", number="001")
+    related_tools: [create_folder, list_projects]
+
+  - name: get_last_projects
+    action_type: read
+    domain: project
+    description: Return recently-used projects.
+    when_to_use: Use for quick access patterns.
+    expected_input: database_token, optional search/sort_by/sort_direction and pagination.
+    expected_output: Array of project list rows.
+    keywords: [project, recent]
+    examples: get_last_projects(database_token="...")
+    related_tools: [list_projects]
+
+  - name: get_project_estimate_bid_summaries
+    action_type: read
+    domain: project
+    description: Return project/estimate/bid summary rollups.
+    when_to_use: Use when you need summary mappings in one request.
+    expected_input: database_token.
+    expected_output: Array of summary rows.
+    keywords: [project, estimate, bidsummary]
+    examples: get_project_estimate_bid_summaries(database_token="...")
+    related_tools: [list_estimates, get_final_price]
+
+  - name: list_estimates
+    action_type: read
+    domain: estimate
+    description: List estimates for a project.
+    when_to_use: Use after obtaining projectID.
+    expected_input: database_token, project_id, optional search/sort_by/sort_direction and pagination.
+    expected_output: Array of estimate rows.
+    keywords: [estimate, list]
+    examples: list_estimates(database_token="...", project_id="...")
+    related_tools: [get_estimate, get_bid_breakdown_views]
+
+  - name: get_estimate
+    action_type: read
+    domain: estimate
+    description: Get one estimate by estimateID.
+    when_to_use: Use when detailed estimate metadata is needed.
+    expected_input: database_token and estimate_id.
+    expected_output: Estimate object including bidSummaries.
+    keywords: [estimate, details]
+    examples: get_estimate(database_token="...", estimate_id="...")
+    related_tools: [list_estimates, get_final_price]
+
+  - name: create_estimate
+    action_type: create_update
+    domain: estimate
+    description: Create a new estimate in a project.
+    when_to_use: Use when adding a new estimate to an existing project.
+    expected_input: database_token, project_id, name, number, industry.
+    expected_output: Create result with estimateID.
+    keywords: [estimate, create]
+    examples: create_estimate(database_token="...", project_id="...", name="Bid", number="01", industry="Electrical")
+    related_tools: [list_estimates]
+
+  - name: get_estimates_by_due_date
+    action_type: read
+    domain: estimate
+    description: List estimates by due date range (yyyymmdd).
+    when_to_use: Use for date-window reporting.
+    expected_input: database_token, start_date, end_date.
+    expected_output: Array of estimates in date range.
+    keywords: [estimate, due date, reporting]
+    examples: get_estimates_by_due_date(database_token="...", start_date="20260101", end_date="20260131")
+    related_tools: [list_estimates]
+
+  - name: trigger_estimate_extension_file
+    action_type: read
+    domain: estimate
+    description: Trigger SignalR file generation for estimate extension details.
+    when_to_use: Use when a SignalR connection_id is already established.
+    expected_input: database_token, estimate_id, connection_id, optional bid_summary_id.
+    expected_output: SignalR trigger response with generated file URL details.
+    keywords: [estimate, signalr, extension]
+    examples: trigger_estimate_extension_file(database_token="...", estimate_id="...", connection_id="...")
+    related_tools: [send_estimate_notification_test]
+
+  - name: send_estimate_notification_test
+    action_type: read
+    domain: estimate
+    description: Send a test SignalR notification for estimate service.
+    when_to_use: Use to validate SignalR connectivity.
+    expected_input: connection_id.
+    expected_output: Notification test response.
+    keywords: [estimate, signalr, test]
+    examples: send_estimate_notification_test(connection_id="...")
+    related_tools: [trigger_estimate_extension_file]
+
+  - name: get_final_price
+    action_type: read
+    domain: closeout
+    description: Get final pricing structure for a bid summary.
+    when_to_use: Use after resolving bidSummaryID.
+    expected_input: database_token and bid_summary_id.
+    expected_output: FinalPrice object with nested selling price components.
+    keywords: [closeout, final price, bidsummary]
+    examples: get_final_price(database_token="...", bid_summary_id="...")
+    related_tools: [get_bid_breakdown, get_estimate]
+
+  - name: get_bid_breakdown_views
+    action_type: read
+    domain: closeout
+    description: List bid breakdown views for an estimate.
+    when_to_use: Use before pulling breakdown line items.
+    expected_input: database_token and estimate_id.
+    expected_output: Array of bid breakdown view definitions.
+    keywords: [closeout, breakdown view]
+    examples: get_bid_breakdown_views(database_token="...", estimate_id="...")
+    related_tools: [get_bid_breakdown]
+
+  - name: get_bid_breakdown
+    action_type: read
+    domain: closeout
+    description: Get paginated bid breakdown line items.
+    when_to_use: Use for detailed closeout analysis by bid summary and view.
+    expected_input: database_token, bid_summary_id, bid_breakdown_view_id, optional page_index.
+    expected_output: Pagination payload with line item rows.
+    keywords: [closeout, breakdown, pagination]
+    examples: get_bid_breakdown(database_token="...", bid_summary_id="...", bid_breakdown_view_id="...", page_index=0)
+    related_tools: [get_bid_breakdown_views]
+
+  - name: list_contracts
+    action_type: read
+    domain: changeorder
+    description: List contracts for a project.
+    when_to_use: Use before querying PCOs or contract metadata.
+    expected_input: database_token, project_id, optional search/status/sort_by/sort_direction and pagination.
+    expected_output: Array of contract rows.
+    keywords: [changeorder, contracts]
+    examples: list_contracts(database_token="...", project_id="...")
+    related_tools: [list_pcos, get_contract_statuses]
+
+  - name: list_pcos
+    action_type: read
+    domain: changeorder
+    description: List PCOs for a contract.
+    when_to_use: Use after obtaining contractID.
+    expected_input: database_token, contract_id, optional search/status/sort_by/sort_direction and pagination.
+    expected_output: Array of PCO rows.
+    keywords: [changeorder, pco, list]
+    examples: list_pcos(database_token="...", contract_id="...")
+    related_tools: [get_pco]
+
+  - name: get_pco
+    action_type: read
+    domain: changeorder
+    description: Get PCO details by id.
+    when_to_use: Use when full PCO metadata is needed.
+    expected_input: database_token and pco_id.
+    expected_output: PCO object.
+    keywords: [changeorder, pco, details]
+    examples: get_pco(database_token="...", pco_id="...")
+    related_tools: [list_pcos]
+
+  - name: get_contract_cost_distribution
+    action_type: read
+    domain: changeorder
+    description: Get cost distribution list for a contract.
+    when_to_use: Use for cost allocation and reporting.
+    expected_input: database_token and contract_id.
+    expected_output: Array of cost distribution rows.
+    keywords: [changeorder, contract, cost]
+    examples: get_contract_cost_distribution(database_token="...", contract_id="...")
+    related_tools: [list_contracts]
+
+  - name: get_contract_quote_labels
+    action_type: read
+    domain: changeorder
+    description: Get quote labels for a contract.
+    when_to_use: Use to map quote index values to labels.
+    expected_input: database_token and contract_id.
+    expected_output: Array of quote label entries.
+    keywords: [changeorder, quotes, labels]
+    examples: get_contract_quote_labels(database_token="...", contract_id="...")
+    related_tools: [get_contract_subcontract_labels]
+
+  - name: get_contract_subcontract_labels
+    action_type: read
+    domain: changeorder
+    description: Get subcontract labels for a contract.
+    when_to_use: Use to map subcontract index values to labels.
+    expected_input: database_token and contract_id.
+    expected_output: Array of subcontract label entries.
+    keywords: [changeorder, subcontracts, labels]
+    examples: get_contract_subcontract_labels(database_token="...", contract_id="...")
+    related_tools: [get_contract_quote_labels]
+
+  - name: get_contract_statuses
+    action_type: read
+    domain: changeorder
+    description: Get valid statuses for a contract.
+    when_to_use: Use when interpreting or filtering PCO status data.
+    expected_input: database_token and contract_id.
+    expected_output: Array of status objects.
+    keywords: [changeorder, statuses, contract]
+    examples: get_contract_statuses(database_token="...", contract_id="...")
+    related_tools: [list_contracts, list_pcos]
+
+  - name: trigger_pco_extension_file
+    action_type: read
+    domain: changeorder
+    description: Trigger SignalR file generation for PCO extension details.
+    when_to_use: Use when a SignalR connection_id is already established.
+    expected_input: database_token, pco_id, connection_id.
+    expected_output: SignalR trigger response.
+    keywords: [changeorder, pco, signalr, extension]
+    examples: trigger_pco_extension_file(database_token="...", pco_id="...", connection_id="...")
+    related_tools: [send_changeorder_notification_test]
+
+  - name: send_changeorder_notification_test
+    action_type: read
+    domain: changeorder
+    description: Send a test SignalR notification for changeorder service.
+    when_to_use: Use to validate SignalR connectivity before extension-file requests.
+    expected_input: connection_id.
+    expected_output: Notification test response.
+    keywords: [changeorder, signalr, test]
+    examples: send_changeorder_notification_test(connection_id="...")
+    related_tools: [trigger_pco_extension_file]
+
+  - name: get_pipeline_summary
+    action_type: read
+    domain: insights
+    description: Build a pipeline summary from rollups and due-date estimates.
+    when_to_use: Use for high-level bid pipeline and due-date analytics.
+    expected_input: database_token, start_date, optional end_date, optional pagination.
+    expected_output: Summary counts, paginated rollups, paginated estimates.
+    keywords: [insights, analytics, pipeline, due date, report]
+    examples: get_pipeline_summary(database_token="...", start_date="20260101", end_date="20260131")
+    related_tools: [get_project_estimate_bid_summaries, get_estimates_by_due_date]
+
+  - name: get_closeout_summary
+    action_type: read
+    domain: insights
+    description: Get a high-level closeout summary for an estimate.
+    when_to_use: Use when you need final pricing and view context quickly.
+    expected_input: database_token, estimate_id, optional bid_summary_id.
+    expected_output: Estimate metadata, final price, view list, optional breakdown preview.
+    keywords: [insights, closeout, summary, final price]
+    examples: get_closeout_summary(database_token="...", estimate_id="...")
+    related_tools: [get_estimate, get_final_price, get_bid_breakdown_views]
+
+  - name: get_changeorder_summary
+    action_type: read
+    domain: insights
+    description: Summarize PCO counts and statuses by contract.
+    when_to_use: Use for quick changeorder status and workload insights.
+    expected_input: database_token, project_id, optional contract_id, optional pagination.
+    expected_output: Project-level totals and per-contract status counts.
+    keywords: [insights, changeorder, pco, status, analytics]
+    examples: get_changeorder_summary(database_token="...", project_id="...")
+    related_tools: [list_contracts, list_pcos, get_contract_statuses]
+
+  - name: get_project_context
+    action_type: read
+    domain: context
+    description: Gather project, estimate list, and contract list in one call.
+    when_to_use: Use when an agent needs project context quickly.
+    expected_input: database_token, project_id, optional pagination.
+    expected_output: Project object with paginated estimates and contracts.
+    keywords: [context, gather, project, bootstrap]
+    examples: get_project_context(database_token="...", project_id="...")
+    related_tools: [get_project, list_estimates, list_contracts]
+
+  - name: get_estimate_context
+    action_type: read
+    domain: context
+    description: Gather estimate details and closeout context in one call.
+    when_to_use: Use when an agent needs estimate and bid-view context quickly.
+    expected_input: database_token, estimate_id, optional bid_summary_id.
+    expected_output: Estimate object, bid breakdown views, final price, optional preview.
+    keywords: [context, gather, estimate, closeout, bootstrap]
+    examples: get_estimate_context(database_token="...", estimate_id="...")
+    related_tools: [get_estimate, get_bid_breakdown_views, get_final_price]
+
+  - name: get_project_health_packet
+    action_type: read
+    domain: workflows
+    description: Build a project health packet with context, contract status distribution, and optional due-window estimates.
+    when_to_use: Use for one-call project diagnostics before deeper closeout or changeorder analysis.
+    expected_input: database_token, project_id, optional due_date_start/due_date_end, optional include_contract_statuses.
+    expected_output: Summary, project details, estimate/contract lists, status rollups, and due-window estimates.
+    keywords: [workflow, health, project, packet, diagnostics]
+    examples: get_project_health_packet(database_token="...", project_id="...", due_date_start="20260101", due_date_end="20260131")
+    related_tools: [get_project_context, get_changeorder_summary, get_pipeline_summary]
+
+  - name: get_estimate_readiness_packet
+    action_type: read
+    domain: workflows
+    description: Build an estimate readiness packet for closeout-focused automation.
+    when_to_use: Use before closeout workflows when you need a validated bid summary context quickly.
+    expected_input: database_token, estimate_id, optional bid_summary_id, optional include_first_breakdown_page.
+    expected_output: Estimate details, bid views, final price, optional preview, and readiness flags.
+    keywords: [workflow, estimate, readiness, closeout, packet]
+    examples: get_estimate_readiness_packet(database_token="...", estimate_id="...")
+    related_tools: [get_estimate_context, get_closeout_summary, get_final_price]
+
+  - name: list_available_tools
+    action_type: read
+    domain: system
+    description: Discover tools and metadata by domain/query.
+    when_to_use: Use when an agent needs tool-selection help.
+    expected_input: optional domain and query.
+    expected_output: Matching tool metadata rows.
+    keywords: [discover, tooling, metadata]
+    examples: list_available_tools(domain="estimate")
+    related_tools: [list_databases]
+
+workflows:
+  - name: pipeline_report
+    steps:
+      - list_databases
+      - get_pipeline_summary
+    description: Discover databases, then produce due-date and rollup pipeline insights.
+  - name: closeout_report
+    steps:
+      - get_estimate
+      - get_closeout_summary
+      - get_bid_breakdown
+    description: Fetch estimate details, summarize closeout, and inspect detailed breakdown rows.
+  - name: changeorder_report
+    steps:
+      - list_contracts
+      - get_changeorder_summary
+    description: Summarize project contracts and PCO statuses in one workflow.

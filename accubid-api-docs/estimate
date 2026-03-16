@@ -1,0 +1,815 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Anywhere Estimate Service",
+    "description": "A service related to estimate for Anywhere",
+    "version": "1.0"
+  },
+  "servers": [
+    {
+      "url": "/estimateservice"
+    }
+  ],
+  "paths": {
+    "/Estimate/{databaseToken}/{estimateID}": {
+      "get": {
+        "tags": [
+          "Estimate"
+        ],
+        "summary": "Get details for a specific estimate.",
+        "parameters": [
+          {
+            "name": "databaseToken",
+            "in": "path",
+            "description": "Token for the database, retrieved from the database api.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "estimateID",
+            "in": "path",
+            "description": "id of requested estimate",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The example was retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EstimateInfo"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "If the parameter(s) are invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The request could not be authorized."
+          },
+          "403": {
+            "description": "The request was explicitly forbidden."
+          },
+          "404": {
+            "description": "If a needed reference is not found."
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/Estimate": {
+      "post": {
+        "tags": [
+          "Estimate"
+        ],
+        "summary": "Create a new Estimate.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateEstimateInfo"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateEstimateInfo"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateEstimateInfo"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The Estimate was created.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateEstimateResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "If the parameter(s) are invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The request could not be authorized."
+          },
+          "403": {
+            "description": "The request was explicitly forbidden."
+          },
+          "404": {
+            "description": "If a needed reference is not found."
+          },
+          "409": {
+            "description": "Conflict, SQL Maintenance mode"
+          },
+          "500": {
+            "description": "Internal Error"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/Estimates/{databaseToken}/{projectID}": {
+      "get": {
+        "tags": [
+          "Estimates"
+        ],
+        "summary": "Get a list of estimates.  The list is not sorted by any field.",
+        "parameters": [
+          {
+            "name": "databaseToken",
+            "in": "path",
+            "description": "Token for the database, retrived from the database api.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "projectID",
+            "in": "path",
+            "description": "ID for the project, retrived from the project list api.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The example was retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EstimateListInfo"
+                  },
+                  "description": "Represents a list of estimates."
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "If the parameter(s) are invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The request could not be authorized."
+          },
+          "403": {
+            "description": "The request was explicitly forbidden."
+          },
+          "404": {
+            "description": "If a needed reference is not found."
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/EstimatesByDueDate/{databaseToken}/{startDate}/{endDate}": {
+      "get": {
+        "tags": [
+          "EstimatesByDueDate"
+        ],
+        "summary": "Get estimates by due date.",
+        "description": "This api will get all estimates that have a due date between and given date range.",
+        "parameters": [
+          {
+            "name": "databaseToken",
+            "in": "path",
+            "description": "Token for the database, retrived from the database api. Date is inclusive.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "startDate",
+            "in": "path",
+            "description": "Starting date, must be in the format of yyyymmdd. Date is inclusive.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "endDate",
+            "in": "path",
+            "description": "Ending date, must be in the format of yyyymmdd. Date is inclusive.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "If the parameter(s) are invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "The example was retrieved."
+          },
+          "401": {
+            "description": "The request could not be authorized."
+          },
+          "404": {
+            "description": "If a needed reference is not found."
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/ExtensionItemDetailsFileSignalR/{databaseToken}/{estimateID}/{connectionID}": {
+      "get": {
+        "tags": [
+          "ExtensionItemDetailsFileSignalR"
+        ],
+        "summary": "Get extension item details file with SignalR.",
+        "description": "This api will get all extension item details and send a SignalR message with a URL for a file that can be downloaded which will contain all the rows for the extension item details.",
+        "parameters": [
+          {
+            "name": "databaseToken",
+            "in": "path",
+            "description": "Token for the database, retrived from the database api.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "estimateID",
+            "in": "path",
+            "description": "id of requested estimate",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "connectionID",
+            "in": "path",
+            "description": "SignalR connection ID for the client",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The example was retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExtensionItemDetailsFile"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "If the parameter(s) are invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The request could not be authorized."
+          },
+          "403": {
+            "description": "The request was explicitly forbidden."
+          },
+          "404": {
+            "description": "If a needed reference is not found."
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/ExtensionItemDetailsFileSignalR/{databaseToken}/{estimateID}/{bidSummaryID}/{connectionID}": {
+      "get": {
+        "tags": [
+          "ExtensionItemDetailsFileSignalR"
+        ],
+        "summary": "Get extension item details file for a specific Bid Summary with SignalR.",
+        "description": "This api will get all extension item details for a specific Bid Summary and send a SignalR message with a URL for a file that can be downloaded which will contain all the rows for the extension item details.",
+        "parameters": [
+          {
+            "name": "databaseToken",
+            "in": "path",
+            "description": "Token for the database, retrived from the database api.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "estimateID",
+            "in": "path",
+            "description": "id of requested estimate",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "bidSummaryID",
+            "in": "path",
+            "description": "ID of the bid summary",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "connectionID",
+            "in": "path",
+            "description": "SignalR connection ID for the client",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The example was retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExtensionItemDetailsFile"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "If the parameter(s) are invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The request could not be authorized."
+          },
+          "403": {
+            "description": "The request was explicitly forbidden."
+          },
+          "404": {
+            "description": "If a needed reference is not found."
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/NotificationTest/{connectionID}": {
+      "get": {
+        "tags": [
+          "NotificationTest"
+        ],
+        "summary": "Send test message for SignalR connection.",
+        "description": "This api will send a test message via SignalR to test the SignalR connection.",
+        "parameters": [
+          {
+            "name": "connectionID",
+            "in": "path",
+            "description": "SignalR connection ID for the client",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The example was retrieved."
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "BidSummary": {
+        "required": [
+          "bidSummaryID",
+          "bidSummaryName"
+        ],
+        "type": "object",
+        "properties": {
+          "bidSummaryID": {
+            "minLength": 1,
+            "type": "string",
+            "description": "ID of the bid summary."
+          },
+          "bidSummaryName": {
+            "minLength": 1,
+            "type": "string",
+            "description": "Name of the bid summary."
+          }
+        },
+        "additionalProperties": false,
+        "description": "Bid summary information"
+      },
+      "BreakdownCategory": {
+        "required": [
+          "breakdownCategoryID",
+          "breakdownCategoryLabel",
+          "breakdownCategoryName"
+        ],
+        "type": "object",
+        "properties": {
+          "breakdownCategoryID": {
+            "minLength": 1,
+            "type": "string",
+            "description": "ID of the breakdown category."
+          },
+          "breakdownCategoryName": {
+            "minLength": 1,
+            "type": "string",
+            "description": "Name of the breakdown category."
+          },
+          "breakdownCategoryLabel": {
+            "minLength": 1,
+            "type": "string",
+            "description": "Label for the breakdown category."
+          }
+        },
+        "additionalProperties": false,
+        "description": "Breakdown category information"
+      },
+      "CreateEstimateInfo": {
+        "required": [
+          "copyDateFromProject",
+          "databaseToken",
+          "industry",
+          "name",
+          "number",
+          "projectID"
+        ],
+        "type": "object",
+        "properties": {
+          "databaseToken": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "projectID": {
+            "minLength": 1,
+            "type": "string",
+            "description": "ProjectID for the new estimate. ProjectIDs can be retrieved from the GetProjects API call."
+          },
+          "name": {
+            "minLength": 1,
+            "type": "string",
+            "description": "Name for the new estimate.  Max length is 64 characters."
+          },
+          "number": {
+            "minLength": 1,
+            "type": "string",
+            "description": "Number for the new estimate.  Max length is 32 characters."
+          },
+          "industry": {
+            "minLength": 1,
+            "type": "string",
+            "description": "Industry for the new estimate. Must be \"Mechanical\", \"Electrical\" or \"ICT\"."
+          },
+          "copyDateFromProject": {
+            "type": "boolean",
+            "description": "CopyDateFromProject flag for the new estimate."
+          }
+        },
+        "additionalProperties": false
+      },
+      "CreateEstimateResult": {
+        "type": "object",
+        "properties": {
+          "estimateID": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "EstimateInfo": {
+        "required": [
+          "applyMarkupOnOverhead",
+          "createdBy",
+          "createdDate",
+          "estimateID",
+          "industry",
+          "isDeleted",
+          "name",
+          "number",
+          "status",
+          "vendorPricingPrecedence"
+        ],
+        "type": "object",
+        "properties": {
+          "estimateID": {
+            "minLength": 1,
+            "type": "string",
+            "description": "Estimate ID"
+          },
+          "name": {
+            "minLength": 1,
+            "type": "string",
+            "description": "Estimate name"
+          },
+          "number": {
+            "minLength": 1,
+            "type": "string",
+            "description": "Estimate number"
+          },
+          "status": {
+            "minLength": 1,
+            "type": "string",
+            "description": "Estimate status.  Can be \"Pending\", \"First\", \"Second\", \"Third\", \"Other\""
+          },
+          "industry": {
+            "minLength": 1,
+            "type": "string",
+            "description": "Can be \"Electrical\", \"Mechanical\" or \"ICT\", depending on licening."
+          },
+          "dueDate": {
+            "type": "string",
+            "description": "Estimate due date.",
+            "format": "date-time"
+          },
+          "createdDate": {
+            "type": "string",
+            "description": "Date the estimate was created.",
+            "format": "date-time"
+          },
+          "createdBy": {
+            "minLength": 1,
+            "type": "string",
+            "description": "Name of person who created the estimate."
+          },
+          "laborColumn": {
+            "type": "string",
+            "description": "The labor column used in the estimate.",
+            "nullable": true
+          },
+          "laborFactorMethod": {
+            "type": "string",
+            "description": "The labor factor method used in the estimate.",
+            "nullable": true
+          },
+          "imperialMetric": {
+            "type": "string",
+            "description": "Imperial/Metric setting for the estimate",
+            "nullable": true
+          },
+          "applyMarkupOnOverhead": {
+            "type": "boolean",
+            "description": "Setting to indicate if ApplyMarkupOnOverhead is used in the estimate"
+          },
+          "vendorPricingPrecedence": {
+            "type": "boolean",
+            "description": "Setting to indicate if VendorPricingPrecedence is used in the estimate"
+          },
+          "contract": {
+            "type": "string",
+            "description": "Name of the contract related to the estimate.",
+            "nullable": true
+          },
+          "notes": {
+            "type": "string",
+            "description": "Estimate notes. This is in HTML.",
+            "nullable": true
+          },
+          "timeInterval": {
+            "type": "string",
+            "description": "Can be \"Days\", \"Weeks\", \"Months\" or \"4weeks\"",
+            "nullable": true
+          },
+          "duration": {
+            "type": "number",
+            "description": "Time interval duration",
+            "format": "double"
+          },
+          "startDate": {
+            "type": "string",
+            "description": "Estimate start date (can be null).",
+            "format": "date-time"
+          },
+          "endDate": {
+            "type": "string",
+            "description": "Estimate end date (can be null).",
+            "format": "date-time"
+          },
+          "isDeleted": {
+            "type": "boolean",
+            "description": "Flag to indicate if the estimate has been marked as deleted."
+          },
+          "bidSummaries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BidSummary"
+            },
+            "description": "List of bid summaries related to the estimate.",
+            "nullable": true
+          },
+          "breakdownCategories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BreakdownCategory"
+            },
+            "description": "List of breakdown categories related to the estimate.",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Estimate info."
+      },
+      "EstimateListInfo": {
+        "required": [
+          "contract",
+          "createdBy",
+          "createdDate",
+          "endDate",
+          "estimateID",
+          "estimateName",
+          "estimateNumber",
+          "startDate",
+          "status"
+        ],
+        "type": "object",
+        "properties": {
+          "estimateID": {
+            "minLength": 1,
+            "type": "string",
+            "description": "Estimate id.  This ID can be used with the estimate api to get information for the estimate."
+          },
+          "estimateName": {
+            "minLength": 1,
+            "type": "string",
+            "description": "Estimate name."
+          },
+          "estimateNumber": {
+            "minLength": 1,
+            "type": "string",
+            "description": "Estimate number"
+          },
+          "status": {
+            "minLength": 1,
+            "type": "string",
+            "description": "Estimate status.  Can be \"Pending\", \"First\", \"Second\", \"Third\", \"Other\""
+          },
+          "startDate": {
+            "type": "string",
+            "description": "Estimate start date (can be null).",
+            "format": "date-time"
+          },
+          "endDate": {
+            "type": "string",
+            "description": "Estimate end date (can be null).",
+            "format": "date-time"
+          },
+          "createdDate": {
+            "type": "string",
+            "description": "Date the estimate was created.",
+            "format": "date-time"
+          },
+          "dueDate": {
+            "type": "string",
+            "description": "Date the estimate is due",
+            "format": "date-time"
+          },
+          "createdBy": {
+            "minLength": 1,
+            "type": "string",
+            "description": "Name of the person who created the estimate."
+          },
+          "contract": {
+            "minLength": 1,
+            "type": "string",
+            "description": "Name of contract related to the estimate."
+          },
+          "isDeleted": {
+            "type": "boolean",
+            "description": "Flag to indicate the estimate has been deleted"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Estimate list info."
+      },
+      "ExtensionItemDetailsFile": {
+        "type": "object",
+        "properties": {
+          "fileUrl": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ProblemDetails": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "nullable": true
+          },
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "detail": {
+            "type": "string",
+            "nullable": true
+          },
+          "instance": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": { }
+      }
+    },
+    "securitySchemes": {
+      "Bearer": {
+        "type": "apiKey",
+        "description": "<p>Enter into the value field the word 'Bearer', a space, and the TID access token.<br>Example: Bearer 409b57d4c516de618a95dfa9e6ca92dd<p>Logging out does not log you out of TID",
+        "name": "Authorization",
+        "in": "header"
+      }
+    }
+  }
+}

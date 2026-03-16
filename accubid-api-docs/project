@@ -1,0 +1,947 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Anywhere Project Service",
+    "description": "A service related to projects for Anywhere",
+    "version": "1.0"
+  },
+  "servers": [
+    {
+      "url": "/projectservice"
+    }
+  ],
+  "paths": {
+    "/Folder": {
+      "post": {
+        "tags": [
+          "Folder"
+        ],
+        "summary": "Create a new folder.",
+        "parameters": [
+          {
+            "name": "api-version",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateFolderInfo"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateFolderInfo"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateFolderInfo"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The folder was created.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateFolderResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "If the parameter(s) are invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The request could not be authorized."
+          },
+          "403": {
+            "description": "The request was explicitly forbidden."
+          },
+          "404": {
+            "description": "If a needed reference is not found."
+          },
+          "409": {
+            "description": "Conflict, SQL Maintenance mode"
+          },
+          "500": {
+            "description": "Internal Error"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/Folders/{databaseToken}": {
+      "get": {
+        "tags": [
+          "Folders"
+        ],
+        "summary": "Get a list of Folders, starting at the root.",
+        "parameters": [
+          {
+            "name": "databaseToken",
+            "in": "path",
+            "description": "Token for the database, retrived from the database api.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "api-version",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The example was retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FolderListInfo"
+                  },
+                  "description": "Represents a list of databases the user has access to."
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "If the parameter(s) are invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The request could not be authorized."
+          },
+          "403": {
+            "description": "The request was explicitly forbidden."
+          },
+          "404": {
+            "description": "If a needed reference is not found."
+          },
+          "409": {
+            "description": "Conflict, SQL Maintenance mode"
+          },
+          "500": {
+            "description": "Internal Error"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/Folders/{databaseToken}/{parentFolderID}": {
+      "get": {
+        "tags": [
+          "Folders"
+        ],
+        "summary": "Get a list of Folders for a specific folder.",
+        "parameters": [
+          {
+            "name": "databaseToken",
+            "in": "path",
+            "description": "Token for the database, retrived from the database api.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "parentFolderID",
+            "in": "path",
+            "description": "Folder ID for parent folder to get alist of children for.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "api-version",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The example was retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FolderListInfo"
+                  },
+                  "description": "Represents a list of databases the user has access to."
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "If the parameter(s) are invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The request could not be authorized."
+          },
+          "403": {
+            "description": "The request was explicitly forbidden."
+          },
+          "404": {
+            "description": "If a needed reference is not found."
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/LastProjects/{databaseToken}": {
+      "get": {
+        "tags": [
+          "LastProjects"
+        ],
+        "summary": "Get a list of projects.  The list is not sorted by any field.",
+        "parameters": [
+          {
+            "name": "databaseToken",
+            "in": "path",
+            "description": "Token for the database, retrived from the database api.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "api-version",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The example was retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProjectListInfo"
+                  },
+                  "description": "Represents a list of databases the user has access to."
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "If the parameter(s) are invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The request could not be authorized."
+          },
+          "403": {
+            "description": "The request was explicitly forbidden."
+          },
+          "404": {
+            "description": "If a needed reference is not found."
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/Project/{databaseToken}/{id}": {
+      "get": {
+        "tags": [
+          "Project"
+        ],
+        "summary": "Get details for a specific project.",
+        "parameters": [
+          {
+            "name": "databaseToken",
+            "in": "path",
+            "description": "Token for the database, retrived from the database api.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "description": "id of requested project",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "api-version",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The example was retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectInfo"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "If the parameter(s) are invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The request could not be authorized."
+          },
+          "403": {
+            "description": "The request was explicitly forbidden."
+          },
+          "404": {
+            "description": "If a needed reference is not found."
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/Project": {
+      "post": {
+        "tags": [
+          "Project"
+        ],
+        "summary": "Create a new Project.",
+        "parameters": [
+          {
+            "name": "api-version",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateProjectInfo"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateProjectInfo"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateProjectInfo"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The Project was created.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateProjectResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "If the parameter(s) are invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The request could not be authorized."
+          },
+          "403": {
+            "description": "The request was explicitly forbidden."
+          },
+          "404": {
+            "description": "If a needed reference is not found."
+          },
+          "409": {
+            "description": "Conflict, SQL Maintenance mode"
+          },
+          "500": {
+            "description": "Internal Error"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/ProjectEstimateBidSummaries/{databaseToken}": {
+      "get": {
+        "tags": [
+          "ProjectEstimateBidSummaries"
+        ],
+        "summary": "Get a list of projects.  The list is not sorted by any field.",
+        "parameters": [
+          {
+            "name": "databaseToken",
+            "in": "path",
+            "description": "Token for the database, retrived from the database api.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "api-version",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The example was retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProjectListInfo"
+                  },
+                  "description": "Represents a list of databases the user has access to."
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "If the parameter(s) are invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The request could not be authorized."
+          },
+          "403": {
+            "description": "The request was explicitly forbidden."
+          },
+          "404": {
+            "description": "If a needed reference is not found."
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/Projects/{databaseToken}": {
+      "get": {
+        "tags": [
+          "Projects"
+        ],
+        "summary": "Get a list of projects.  The list is not sorted by any field.",
+        "parameters": [
+          {
+            "name": "databaseToken",
+            "in": "path",
+            "description": "Token for the database, retrived from the database api.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "api-version",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The example was retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProjectListInfo"
+                  },
+                  "description": "Represents a list of databases the user has access to."
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "If the parameter(s) are invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The request could not be authorized."
+          },
+          "403": {
+            "description": "The request was explicitly forbidden."
+          },
+          "404": {
+            "description": "If a needed reference is not found."
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "CreateFolderInfo": {
+        "required": [
+          "databaseToken",
+          "description"
+        ],
+        "type": "object",
+        "properties": {
+          "databaseToken": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "parentFolderID": {
+            "type": "string",
+            "description": "ParentFolderID for the new folder. FolderIDs can be retrieved from the GetFolders API call.  To create a folder at the root level, use null as the ParentFolderID.",
+            "nullable": true
+          },
+          "description": {
+            "minLength": 1,
+            "type": "string",
+            "description": "Description (name) for the new folder.  Max length is 128 characters."
+          }
+        },
+        "additionalProperties": false
+      },
+      "CreateFolderResult": {
+        "type": "object",
+        "properties": {
+          "folderID": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "CreateProjectInfo": {
+        "required": [
+          "databaseToken",
+          "folderID",
+          "name",
+          "number"
+        ],
+        "type": "object",
+        "properties": {
+          "databaseToken": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "folderID": {
+            "minLength": 1,
+            "type": "string",
+            "description": "FolderID for the new project. FolderIDs can be retrieved from the GetFolders API call."
+          },
+          "name": {
+            "minLength": 1,
+            "type": "string",
+            "description": "Name for the new project.  Max length is 64 characters."
+          },
+          "number": {
+            "minLength": 1,
+            "type": "string",
+            "description": "Number for the new project.  Max length is 32 characters."
+          }
+        },
+        "additionalProperties": false
+      },
+      "CreateProjectResult": {
+        "type": "object",
+        "properties": {
+          "projectID": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "FolderListInfo": {
+        "required": [
+          "folderID",
+          "name",
+          "parentFolderID"
+        ],
+        "type": "object",
+        "properties": {
+          "folderID": {
+            "minLength": 1,
+            "type": "string",
+            "description": "FolderID"
+          },
+          "parentFolderID": {
+            "minLength": 1,
+            "type": "string",
+            "description": "ParentFolderID"
+          },
+          "name": {
+            "minLength": 1,
+            "type": "string",
+            "description": "Project name."
+          }
+        },
+        "additionalProperties": false,
+        "description": "Folder list info."
+      },
+      "ProblemDetails": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "nullable": true
+          },
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "detail": {
+            "type": "string",
+            "nullable": true
+          },
+          "instance": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": { }
+      },
+      "ProjectInfo": {
+        "required": [
+          "createdBy",
+          "createdDate",
+          "managingBranchName",
+          "projectID",
+          "projectName",
+          "projectNumber",
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "projectID": {
+            "minLength": 1,
+            "type": "string",
+            "description": "ProjectID"
+          },
+          "projectName": {
+            "minLength": 1,
+            "type": "string",
+            "description": "Project name."
+          },
+          "projectNumber": {
+            "minLength": 1,
+            "type": "string",
+            "description": "Project number"
+          },
+          "type": {
+            "minLength": 1,
+            "type": "string",
+            "description": "Project type."
+          },
+          "startDate": {
+            "type": "string",
+            "description": "Project start date.",
+            "format": "date-time"
+          },
+          "endDate": {
+            "type": "string",
+            "description": "Project end date.",
+            "format": "date-time"
+          },
+          "createdDate": {
+            "type": "string",
+            "description": "Date the project was created.",
+            "format": "date-time"
+          },
+          "createdBy": {
+            "minLength": 1,
+            "type": "string",
+            "description": "Name of person who created the project."
+          },
+          "managingBranchName": {
+            "minLength": 1,
+            "type": "string",
+            "description": "Name of managing branch for the project."
+          },
+          "siteName": {
+            "type": "string",
+            "description": "Project site name",
+            "nullable": true
+          },
+          "sitePhone": {
+            "type": "string",
+            "description": "Phone number for the project's site.",
+            "nullable": true
+          },
+          "siteFax": {
+            "type": "string",
+            "description": "Fax number for the project's site.",
+            "nullable": true
+          },
+          "siteStreet1": {
+            "type": "string",
+            "description": "Address for the project's site.",
+            "nullable": true
+          },
+          "siteStreet2": {
+            "type": "string",
+            "description": "Address for the project's site.",
+            "nullable": true
+          },
+          "siteCity": {
+            "type": "string",
+            "description": "City for the project's site.",
+            "nullable": true
+          },
+          "siteState": {
+            "type": "string",
+            "description": "State/Provience for the project's site.",
+            "nullable": true
+          },
+          "siteCountry": {
+            "type": "string",
+            "description": "",
+            "nullable": true
+          },
+          "siteZipCode": {
+            "type": "string",
+            "description": "Zip/Postal Code for the project's site.",
+            "nullable": true
+          },
+          "projectPath": {
+            "type": "string",
+            "description": "Folder path of the project",
+            "nullable": true
+          },
+          "vendors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Vendor"
+            },
+            "description": "List of vendors related to the project.",
+            "nullable": true
+          },
+          "folderID": {
+            "type": "string",
+            "description": "FolderID",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Project info."
+      },
+      "ProjectListInfo": {
+        "required": [
+          "createdBy",
+          "createdDate",
+          "endDate",
+          "folderID",
+          "managingBranchName",
+          "projectID",
+          "projectName",
+          "projectNumber",
+          "startDate",
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "projectID": {
+            "minLength": 1,
+            "type": "string",
+            "description": "ProjectID"
+          },
+          "projectName": {
+            "minLength": 1,
+            "type": "string",
+            "description": "Project name."
+          },
+          "projectNumber": {
+            "minLength": 1,
+            "type": "string",
+            "description": "Project number"
+          },
+          "type": {
+            "minLength": 1,
+            "type": "string",
+            "description": "Project type."
+          },
+          "startDate": {
+            "type": "string",
+            "description": "Project start date (can be null).",
+            "format": "date-time"
+          },
+          "endDate": {
+            "type": "string",
+            "description": "Project end date (can be null).",
+            "format": "date-time"
+          },
+          "createdDate": {
+            "type": "string",
+            "description": "Date the project was created.",
+            "format": "date-time"
+          },
+          "createdBy": {
+            "minLength": 1,
+            "type": "string",
+            "description": "Name of person who created the project."
+          },
+          "managingBranchName": {
+            "minLength": 1,
+            "type": "string",
+            "description": "Name of managing branch for the project."
+          },
+          "folderID": {
+            "minLength": 1,
+            "type": "string",
+            "description": "FolderID"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Project list info."
+      },
+      "Vendor": {
+        "required": [
+          "vendorCode",
+          "vendorName"
+        ],
+        "type": "object",
+        "properties": {
+          "vendorName": {
+            "minLength": 1,
+            "type": "string",
+            "description": "Name of the vendor."
+          },
+          "vendorCode": {
+            "minLength": 1,
+            "type": "string",
+            "description": "Code for the vendor"
+          },
+          "supplierExchange": {
+            "type": "integer",
+            "description": "Supplier Exchange id for the vendor.",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Vendor information"
+      }
+    },
+    "securitySchemes": {
+      "Bearer": {
+        "type": "apiKey",
+        "description": "<p>Enter into the value field the word 'Bearer', a space, and the TID access token.<br>Example: Bearer 409b57d4c516de618a95dfa9e6ca92dd<p>Logging out does not log you out of TID",
+        "name": "Authorization",
+        "in": "header"
+      }
+    }
+  }
+}

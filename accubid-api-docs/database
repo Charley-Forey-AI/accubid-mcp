@@ -1,0 +1,143 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Anywhere Database Service",
+    "description": "A service to get a list of databases for Anywhere",
+    "version": "1.0"
+  },
+  "servers": [
+    {
+      "url": "/databaseservice"
+    }
+  ],
+  "paths": {
+    "/Databases": {
+      "get": {
+        "tags": [
+          "Databases"
+        ],
+        "summary": "Gets a list of databases for current user.",
+        "responses": {
+          "200": {
+            "description": "The database list was successfully returned.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Database"
+                  },
+                  "description": "Represents a list of databases the user has access to."
+                }
+              }
+            }
+          },
+          "204": {
+            "description": "No licencing information was found for the user.  A custom key will also be in the reply header called \"X-No-Content-Reason\"",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The request could not be authorized.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "A needed reference is not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests from this IP address.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An internal server error occurred.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Database": {
+        "required": [
+          "companyName",
+          "databaseName",
+          "token"
+        ],
+        "type": "object",
+        "properties": {
+          "token": {
+            "minLength": 1,
+            "type": "string",
+            "description": "Token for database"
+          },
+          "databaseName": {
+            "minLength": 1,
+            "type": "string",
+            "description": "Name of database"
+          },
+          "companyName": {
+            "minLength": 1,
+            "type": "string",
+            "description": "Name of company"
+          }
+        },
+        "additionalProperties": false,
+        "description": "A record of a database."
+      }
+    },
+    "securitySchemes": {
+      "Bearer": {
+        "type": "apiKey",
+        "description": "<p>Enter into the value field the word 'Bearer', a space, and the TID access token.<br>Example: Bearer 409b57d4c516de618a95dfa9e6ca92dd<p>Logging out does not log you out of TID",
+        "name": "Authorization",
+        "in": "header"
+      }
+    }
+  }
+}

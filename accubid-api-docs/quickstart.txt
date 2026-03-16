@@ -1,0 +1,1768 @@
+Quickstart
+This section shows you how to quickly start calling the Accubid Anywhere APIs. We recommend using a popular API testing tool.
+
+The steps below outline how to efficiently return data by utilizing the tree structure. In order to get project level details, you will first need to pass Database token. In order to get estimate level details, you will need to pass a Project ID, and so on.
+
+Authentication
+Inforamtion
+
+Accubid uses Trimble Identity for authenticating access to APIs.
+
+In order to use the API the user must have “Full” permission for “API Data Access” setup in Accubid Anywhere Manager.
+
+The access token acquired from authentication must be included as an Authorization Bearer token in all other API calls. To acquire access token please follow the TrimbleIdentity documentation for the “Authorization Code” and “Authorization Code with PKCE” grant types.
+
+Check out the Authorization Guide for more information.
+
+Get database token
+GET https://cloud.api.trimble.com/anywhere/database/v1/databases
+
+This will return a list of database names and tokens.
+
+Example response
+[
+    {
+        "Token": "xxxxxxxxx",
+        "DatabaseName": "Database A",
+        "CompanyName": "Company A"
+    },
+    {
+        "Token": "yyyyyyyyy",
+        "DatabaseName": "Database B",
+        "CompanyName": "Company B"
+    }
+]
+
+Inforamtion
+
+Database tokens do not change, so they can be saved for future use.
+
+Create Folder
+Create a new Folder
+
+POST https://cloud.api.trimble.com/anywhere/project/v1/folder
+
+This will return a list of database names and tokens.
+
+Body request
+[
+    {
+        "DatabaseToken": "xxxxxxxxx",
+        "ParentFolderID": "XxYyZz456",
+        "Description": "Folder Description"
+    }
+]
+
+Example response
+[
+  {
+    "FolderID": "XxYyZz456"
+  }
+]
+
+Inforamtion
+
+ParentFolderID can be empty.
+
+Get Folder
+Get a list of folders, starting at the root
+
+GET https://cloud.api.trimble.com/anywhere/project/v1/Folders/{databaseToken}
+
+Get a list of folders for a specific folder.
+
+GET https://cloud.api.trimble.com/anywhere/project/v1/Folders/{databaseToken}/{parentFolderID}
+
+Example response
+[
+    {
+
+        "FolderID": "AaBb123",
+        "ParentFolderID": "XxYyZz456",
+        "Description": "Folder A description"
+  },
+  {
+
+        "FolderID": "AaBb456",
+        "ParentFolderID": "XxYyZz456",
+        "Description": "Folder B description"
+  }
+]
+
+Create Project
+Create a new Project
+
+POST https://cloud.api.trimble.com/anywhere/project/v1/project
+
+This will return the ProjectID of the created Project.
+
+Body request
+[
+  {
+
+        "DatabaseToken": "xxxxxxxxx",
+        "FolderID": "XxYyZz456",
+        "Name": "Project Name",
+        "Number": "Project Number"
+  }
+]
+
+Example response
+[
+  {
+    "ProjectID": "DdEeFf456"
+  }
+]
+
+Get the project list
+Get the project list for a database
+
+GET https://cloud.api.trimble.com/anywhere/project/v1/projects/{databaseToken}
+
+This will return a list of project names and IDs.
+
+Example response
+[
+  {
+
+        "ProjectID": "XxYyZz123",
+        "ProjectName": "Project A",
+        "ProjectNumber": "Project 1",
+        "Type": "Commercial:Large:New",
+        "StartDate": "1970-01-01T00:00:00.000Z",
+        "EndDate": "1970-01-01T00:00:00.000Z",
+        "CreatedDate": "1970-01-01T00:00:00.000Z",
+        "CreatedBy": "exampleresponse@trimble.com",
+        "ManagingBranchName": "Company Name",
+        "ProjectPath": "Project Folder",
+        "TrimbleProjectID": null
+  },
+  {
+
+        "ProjectID": "XxYyZz123",
+        "ProjectName": "Project B",
+        "ProjectNumber": "Project 2",
+        "Type": "Commercial:Large:New",
+        "StartDate": "1970-01-01T00:00:00.000Z",
+        "EndDate": "1970-01-01T00:00:00.000Z",
+        "CreatedDate": "1970-01-01T00:00:00.000Z",
+        "CreatedBy": "exampleresponse@trimble.com",
+        "ManagingBranchName": "Company Name",
+        "ProjectPath": "Project Folder",
+        "TrimbleProjectID": null
+  }
+]
+
+Inforamtion
+
+Project IDs do not change, so they can be saved for future use.
+
+Get the project info
+Get information for a specific project
+
+GET https://cloud.api.trimble.com/anywhere/project/v1/project/{databaseToken}/{projectID}
+
+Example response
+[
+    {
+         "ProjectID": "XxYyZz123",
+         "ProjectPath": "Project Folder",
+         "ProjectName": "Project A",
+         "ProjectNumber": "Project 1",
+         "Type": "Commercial:Large:New",
+         "StartDate": "1970-01-01T00:00:00.000Z",
+         "EndDate": "1970-01-01T00:00:00.000Z",
+         "CreatedDate": "1970-01-01T00:00:00.000Z",
+         "CreatedBy": "accubid",
+         "ManagingBranchName": "Company Name",
+         "SiteName": null,
+         "SitePhone": null,
+         "SiteFax": null,
+         "SiteStreet1": null,
+         "SiteStreet2": null,
+         "SiteCity": null,
+         "SiteState": null,
+         "SiteCountry": null,
+         "SiteZipCode": null,
+         "TrimbleProjectID": null,
+         "FolderID": "XxYyZz456",
+         "Vendors": []
+    }
+]
+
+Create Estimate
+Create a new Estimate
+
+POST https://cloud.api.trimble.com/anywhere/estimate/v1/estimate
+
+This will return the EstimateID of the created Estimate.
+
+Body request
+[
+  {
+
+        "DatabaseToken": "xxxxxxxxx",
+        "projectID": "XxYyZz456",
+        "Name": "Estimate Name",
+        "Number": "Estimate Number",
+        "industry": "Electrical",
+        "copyDateFromProject": true
+  }
+]
+
+Example response
+[
+  {
+    "EstimateID": "DdEeFf456"
+  }
+]
+
+Get the estimate list
+Get the estimate list for a project
+
+GET https://cloud.api.trimble.com/anywhere/estimate/v1/estimates/{databaseToken}/{projectID}
+
+This will return a list of estimated names and IDs
+
+Example response
+[
+    {
+        "EstimateID": "AaBbCc123",
+        "EstimateName": "Estimate A",
+        "EstimateNumber": "Estimate 1",
+        "Status": "Pending",
+        "CreatedBy": "exampleresponse@trimble.com",
+        "CreatedDate": "1970-01-01T00:00:00.000Z",
+        "DueDate": "1970-01-01T00:00:00.000Z",
+        "StartDate": "1970-01-01T00:00:00.000Z",
+        "EndDate": "1970-01-01T00:00:00.000Z",
+        "Contract": null,
+        "IsDeleted": false
+    },
+    {
+        "EstimateID": "XxYyZz456",
+        "EstimateName": "Estimate B",
+        "EstimateNumber": "Estimate 2",
+        "Status": "Pending",
+        "CreatedBy": "exampleresponse@trimble.com",
+        "CreatedDate": "1970-01-01T00:00:00.000Z",
+        "DueDate": "1970-01-01T00:00:00.000Z",
+        "StartDate": "1970-01-01T00:00:00.000Z",
+        "EndDate": "1970-01-01T00:00:00.000Z",
+        "Contract": null,
+        "IsDeleted": false
+    }
+]
+
+Get the estimate info
+Get information for a specific estimate
+
+GET https://cloud.api.trimble.com/anywhere/estimate/v1/estimate/{databaseToken}/{estimateID}
+
+This will return information for a specific estimate
+
+Example response
+{
+    "EstimateID": "AaBbCc123",
+    "Name": "Estimate A",
+    "Number": "Estimate 1",
+    "CreatedBy": "exampleresponse",
+    "CreatedDate": "2015-06-03T13:42:06.817",
+    "LaborColumn": "Column Nmae",
+    "LaborFactorMethod": "Additive",
+    "ImperialMetric": "Imperial",
+    "Status": "Pending",
+    "Industry": "Mechanical",
+    "ApplyMarkupOnOverhead": true,
+    "ApplyOverheadAndMarkupOnTax": true,
+    "VendorPricingPrecedence": true,
+    "Contract": null,
+    "DueDate": "1970-01-01T00:00:00.000Z",
+    "StartDate": "1970-01-01T00:00:00.000Z",
+    "EndDate": "1970-01-01T00:00:00.000Z",
+    "Notes": "<div style=\"font-size:12pt;font-family:&quot;Times New Roman&quot;;\"></div>",
+    "Duration": 0.0,
+    "TimeInterval": "Days",
+    "IsDeleted": false,
+    "BidSummaries": [
+        {
+            "BidSummaryID": "xxxxyyyy",
+            "BidSummaryName": "Bidsummary A"
+        },
+        {
+            "BidSummaryID": "aaaabbbb",
+            "BidSummaryName": "Bidsummary B"
+        }
+    ],
+    "BreakdownCategories": [
+        {
+            "BreakdownCategoryID": 1,
+            "BreakdownCategoryName": "Area",
+            "BreakdownCategoryLabel": null
+        },
+        {
+            "BreakdownCategoryID": 2,
+            "BreakdownCategoryName": "Bid Item",
+            "BreakdownCategoryLabel": null
+        },
+        {
+            "BreakdownCategoryID": 3,
+            "BreakdownCategoryName": "Misc 1",
+            "BreakdownCategoryLabel": "Line Number"
+        },
+        {
+            "BreakdownCategoryID": 4,
+            "BreakdownCategoryName": "Drawing",
+            "BreakdownCategoryLabel": null
+        }
+    ]
+}
+
+Inforamtion
+
+Estimate IDs do not change, so they can be saved for future use.
+
+Get extension details for a specific estimate
+Call the estimate extension item details API to get extension information for a specific estimate
+
+GET https://cloud.api.trimble.com/anywhere/estimate/v1/extensionItemDetailsFileSignalR{databaseToken}/{estimateID}/{connectionID}
+
+This will send a message with a URL via SignalR when the file is available for download.
+
+Example response
+[
+   {
+      "TakeoffID": 12345,
+      "TakeOffItemID": 67890,
+      "JobID": 1234,
+      "ItemDescription": "AaBbCc123",
+      "Attributes": "1/2\"",
+      "Qty": 40,
+      "PriceUnit": "C",
+      "Price": 0,
+      "MaterialCondition": "Normal",
+      "Discount": 0,
+      "Cost": 0,
+      "CostAdj": 0,
+      "NetCost": 0,
+      "TotalMaterial": 0,
+      "LaborUnit": "C",
+      "FieldLaborAdj": null,
+      "FieldLabor": 1.11,
+      "TotalFieldLabor": 0.2222,
+      "ShopLabor": 0.111,
+      "ShopQty": 40,
+      "TotalShopLabor": 0.2222,
+      "TotalLabor": 1.112,
+      "SortCode1": "aaaabbbb",
+      "SortCode2": "xxxxyyyy",
+      "SortCode3": null,
+      "SortCode4": null,
+      "SortCode5": null,
+      "SortCode6": null,
+      "SortCode7": null,
+      "SortCode8": null,
+      "SortCode1ID": 1234,
+      "SortCode2ID": 5678,
+      "SortCode3ID": null,
+      "SortCode4ID": null,
+      "SortCode5ID": null,
+      "SortCode6ID": null,
+      "SortCode7ID": null,
+      "SortCode8ID": null,
+      "ERPSystemCode": null,
+      "CatalogNumber": "aaaabbbb",
+      "JobDiscountGroupName": null,
+      "LaborCondition": "Normal",
+      "LbrByWtCategory": null,
+      "Manufacturer": "Generic",
+      "MeasureType": "Length",
+      "PriceCode": "111122223333",
+      "PriceDate": "1970-01-01T00:00:00.000",
+      "ItemArea": 0.111,
+      "AreaUnit": "E",
+      "TotalArea": 11.11,
+      "Volume": 0,
+      "VolumeUnit": "E",
+      "TotalVolume": 0,
+      "Weight": 30,
+      "WeightUnit": "C",
+      "TotalWeight": 12,
+      "Vendor": null,
+      "VendorCode": "Code A",
+      "VendorPrice": null,
+      "VendorNote": null,
+      "WallThickness": 0,
+      "PriceUnitID": 2,
+      "PriceConditionID": 0,
+      "LaborUnitID": 2,
+      "AreaUnitID": 1,
+      "DiscountGroupID": null,
+      "LaborConditionID": 0,
+      "LaborByWeightCategoryID": null,
+      "MeasureTypeID": 1,
+      "ItemVolumeUnitID": 1,
+      "ItemWeightUnitID": 2,
+      "VendorCompanyBranchID": null,
+      "TakeOffItemGroupID": 12345,
+      "TakeoffItemPriceID": 67890,
+      "Drawing": "Drawing 4",
+      "DrawingID": 12345,
+      "Area": "Area 4",
+      "AreaID": 67890,
+      "Phase": "Phase 4",
+      "PhaseID": 112233,
+      "System": "System 4",
+      "SystemID": 445566,
+      "BidItem": "Bid Item 4",
+      "BidItemID": 112233,
+      "LineNumber": "Spool 4",
+      "LineNumberID": 445566,
+      "Spool": "No Misc 2",
+      "SpoolID": 112233,
+      "Misc3": "No Misc 3",
+      "Misc3ID": 445566,
+      "Misc4": "No Misc 4",
+      "Misc4ID": 778899,
+      "Misc5": "No Misc 5",
+      "Misc5ID": 112233,
+      "Misc6": "No Misc 6",
+      "Misc6ID": 445566,
+      "Misc7": "No Misc 7",
+      "Misc7ID": 778899,
+      "LaborFactor": "Normal",
+      "LaborFactorID": 12345,
+      "SpecificationID": 56789,
+      "SpecificationName": "No Specification",
+      "TakeoffDetailID": 1122334455,
+      "AssemblyName": null,
+      "EncodedPath": "11AA22BB_33CC",
+      "Estimator": "example_response@trimble.com",
+      "GUID": null,
+      "Industry": "Electrical",
+      "IsDesignationItem": false,
+      "MaterialAdjustmentPct": 0,
+      "MaterialPricingMethod": "Quantity",
+      "TakeoffAssemblyID": null,
+      "TakeoffLabel": "aaaabbbb",
+      "WeightUnitWeight": null,
+      "DesignationUniqueID": null,
+      "AreaCode": "",
+      "BidItemCode": "",
+      "SpoolCode": null,
+      "DrawingCode": "",
+      "PhaseCode": "",
+      "LineNumberCode": "",
+      "SystemCode": "",
+      "Misc3Code": null,
+      "Misc4Code": null,
+      "Misc5Code": null,
+      "Misc6Code": null,
+      "Misc7Code": null
+   }
+]
+
+Inforamtion
+
+Usage of this API requires a connection to the API SignalR hub to get the connection ID. Please follow Sample Code
+
+Get extension details for a specific Bid Summary
+Call the estimate extension item details API to get extension information for a specific Bid Summary
+
+GET https://cloud.api.trimble.com/anywhere/estimate/v1/extensionItemDetailsFileSignalR{databaseToken}/{estimateID}/{bidsummaryID}/{connectionID}
+
+This will send a message with a URL via SignalR when the file is available for download.
+
+Example response
+[
+   {
+      "TakeoffID": 12345,
+      "TakeOffItemID": 67890,
+      "JobID": 1234,
+      "ItemDescription": "AaBbCc123",
+      "Attributes": "1/2\"",
+      "Qty": 40,
+      "PriceUnit": "C",
+      "Price": 0,
+      "MaterialCondition": "Normal",
+      "Discount": 0,
+      "Cost": 0,
+      "CostAdj": 0,
+      "NetCost": 0,
+      "TotalMaterial": 0,
+      "LaborUnit": "C",
+      "FieldLaborAdj": null,
+      "FieldLabor": 1.11,
+      "TotalFieldLabor": 0.2222,
+      "ShopLabor": 0.111,
+      "ShopQty": 40,
+      "TotalShopLabor": 0.2222,
+      "TotalLabor": 1.112,
+      "SortCode1": "aaaabbbb",
+      "SortCode2": "xxxxyyyy",
+      "SortCode3": null,
+      "SortCode4": null,
+      "SortCode5": null,
+      "SortCode6": null,
+      "SortCode7": null,
+      "SortCode8": null,
+      "SortCode1ID": 1234,
+      "SortCode2ID": 5678,
+      "SortCode3ID": null,
+      "SortCode4ID": null,
+      "SortCode5ID": null,
+      "SortCode6ID": null,
+      "SortCode7ID": null,
+      "SortCode8ID": null,
+      "ERPSystemCode": null,
+      "CatalogNumber": "aaaabbbb",
+      "JobDiscountGroupName": null,
+      "LaborCondition": "Normal",
+      "LbrByWtCategory": null,
+      "Manufacturer": "Generic",
+      "MeasureType": "Length",
+      "PriceCode": "111122223333",
+      "PriceDate": "1970-01-01T00:00:00.000",
+      "ItemArea": 0.111,
+      "AreaUnit": "E",
+      "TotalArea": 11.11,
+      "Volume": 0,
+      "VolumeUnit": "E",
+      "TotalVolume": 0,
+      "Weight": 30,
+      "WeightUnit": "C",
+      "TotalWeight": 12,
+      "Vendor": null,
+      "VendorCode": "Code A",
+      "VendorPrice": null,
+      "VendorNote": null,
+      "WallThickness": 0,
+      "PriceUnitID": 2,
+      "PriceConditionID": 0,
+      "LaborUnitID": 2,
+      "AreaUnitID": 1,
+      "DiscountGroupID": null,
+      "LaborConditionID": 0,
+      "LaborByWeightCategoryID": null,
+      "MeasureTypeID": 1,
+      "ItemVolumeUnitID": 1,
+      "ItemWeightUnitID": 2,
+      "VendorCompanyBranchID": null,
+      "TakeOffItemGroupID": 12345,
+      "TakeoffItemPriceID": 67890,
+      "Drawing": "Drawing 4",
+      "DrawingID": 12345,
+      "Area": "Area 4",
+      "AreaID": 67890,
+      "Phase": "Phase 4",
+      "PhaseID": 112233,
+      "System": "System 4",
+      "SystemID": 445566,
+      "BidItem": "Bid Item 4",
+      "BidItemID": 112233,
+      "LineNumber": "Spool 4",
+      "LineNumberID": 445566,
+      "Spool": "No Misc 2",
+      "SpoolID": 112233,
+      "Misc3": "No Misc 3",
+      "Misc3ID": 445566,
+      "Misc4": "No Misc 4",
+      "Misc4ID": 778899,
+      "Misc5": "No Misc 5",
+      "Misc5ID": 112233,
+      "Misc6": "No Misc 6",
+      "Misc6ID": 445566,
+      "Misc7": "No Misc 7",
+      "Misc7ID": 778899,
+      "LaborFactor": "Normal",
+      "LaborFactorID": 12345,
+      "SpecificationID": 56789,
+      "SpecificationName": "No Specification",
+      "TakeoffDetailID": 1122334455,
+      "AssemblyName": null,
+      "EncodedPath": "11AA22BB_33CC",
+      "Estimator": "example_response@trimble.com",
+      "GUID": null,
+      "Industry": "Electrical",
+      "IsDesignationItem": false,
+      "MaterialAdjustmentPct": 0,
+      "MaterialPricingMethod": "Quantity",
+      "TakeoffAssemblyID": null,
+      "TakeoffLabel": "aaaabbbb",
+      "WeightUnitWeight": null,
+      "DesignationUniqueID": null,
+      "AreaCode": "",
+      "BidItemCode": "",
+      "SpoolCode": null,
+      "DrawingCode": "",
+      "PhaseCode": "",
+      "LineNumberCode": "",
+      "SystemCode": "",
+      "Misc3Code": null,
+      "Misc4Code": null,
+      "Misc5Code": null,
+      "Misc6Code": null,
+      "Misc7Code": null
+   }
+]
+
+Inforamtion
+
+Usage of this API requires a connection to the API SignalR hub to get the connection ID. Please follow Sample Code
+
+Get the final price data
+Call the final price API to get the final price data for a Bid Summary
+
+GET https://cloud.api.trimble.com/anywhere/closeout/v1/finalprice/{databaseToken}/{bidSummaryID}
+
+This will return the final price data for a specific Bid Summary.
+
+Example response
+{
+   "Header": {
+      "ApplicationName": "ApplicationName",
+      "CustomerId": "1122334455",
+      "UserUuid": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+      "Id": "aaAA11222-1234-1bb2-c101abcdef121_12743",
+      "ParentId": "aaAA11222-1234-1bb2-c101abcdef121_12743",
+      "ParentType": "BidSummary",
+      "CorrelationID": "aaAA11222-1234-1bb2-c101abcdef121_6195",
+      "ProjectId": "aaAA11222",
+      "Operation": "Create",
+      "OperationUtc": "1970-01-01T00:00:00.000Z"
+   },
+   "FinalPricing": {
+      "SellingPrice": {
+         "NetCost": {
+            "PrimeCost": {
+               "MaterialTotal": {
+                  "DatabaseMaterial": {
+                     "CalcAmount": 100000.00,
+                     "CalcPercent": 0,
+                     "AdjAmount": 0,
+                     "AdjPercent": 0,
+                     "ModAmount": 100000.00,
+                     "ModPercent": 0,
+                     "PercentOfFinalPrice": 10.000,
+                     "Note": "",
+                     "Code": "",
+                     "VisualOrder": 1,
+                     "Id": "1"
+                  },
+                  "MaterialAdjustment": {
+                     "CalcAmount": 0,
+                     "CalcPercent": 0,
+                     "AdjAmount": 0,
+                     "AdjPercent": 0,
+                     "ModAmount": 0,
+                     "ModPercent": 0,
+                     "PercentOfFinalPrice": 0,
+                     "Note": "",
+                     "Code": "",
+                     "VisualOrder": 2,
+                     "Id": "2"
+                  },
+                  "MaterialTax": {
+                     "CalcAmount": 10000.00,
+                     "CalcPercent": 8,
+                     "AdjAmount": 0,
+                     "AdjPercent": 0,
+                     "ModAmount": 10000.00,
+                     "ModPercent": 8,
+                     "PercentOfFinalPrice": 1.000,
+                     "Note": "",
+                     "Code": "",
+                     "VisualOrder": 6,
+                     "Id": "4"
+                  },
+                  "CalcAmount": 100000.00,
+                  "CalcPercent": 0,
+                  "AdjAmount": 0,
+                  "AdjPercent": 0,
+                  "ModAmount": 100000.00,
+                  "ModPercent": 0,
+                  "PercentOfFinalPrice": 10.000,
+                  "Note": "",
+                  "Code": "",
+                  "VisualOrder": 7,
+                  "Id": "5"
+               },
+               "LaborTotal": {
+                  "FieldLabor": {
+                     "CalcAmount": 100000.00,
+                     "CalcPercent": 0,
+                     "AdjAmount": 0,
+                     "AdjPercent": 0,
+                     "ModAmount": 1000000.0,
+                     "ModPercent": 0,
+                     "PercentOfFinalPrice": 10.0000,
+                     "Note": "",
+                     "Code": "",
+                     "VisualOrder": 8,
+                     "Id": "7"
+                  },
+                  "ShopLabor": {
+                     "CalcAmount": 0,
+                     "CalcPercent": 0,
+                     "AdjAmount": 0,
+                     "AdjPercent": 0,
+                     "ModAmount": 0,
+                     "ModPercent": 0,
+                     "PercentOfFinalPrice": 0,
+                     "Note": "",
+                     "Code": "",
+                     "VisualOrder": 9,
+                     "Id": "6"
+                  },
+                  "IncidentalLabor": {
+                     "CalcAmount": 0,
+                     "CalcPercent": 0,
+                     "AdjAmount": 0,
+                     "AdjPercent": 0,
+                     "ModAmount": 0,
+                     "ModPercent": 0,
+                     "PercentOfFinalPrice": 0,
+                     "Note": "",
+                     "Code": "",
+                     "VisualOrder": 11,
+                     "Id": "8"
+                  },
+                  "LaborFactoring": {
+                     "CalcAmount": 0,
+                     "CalcPercent": 0,
+                     "AdjAmount": 0,
+                     "AdjPercent": 0,
+                     "ModAmount": 0,
+                     "ModPercent": 0,
+                     "PercentOfFinalPrice": 0,
+                     "Note": "",
+                     "Code": "",
+                     "VisualOrder": 12,
+                     "Id": "9"
+                  },
+                  "LaborEsclation": {
+                     "CalcAmount": 0,
+                     "CalcPercent": 0,
+                     "AdjAmount": 0,
+                     "AdjPercent": 0,
+                     "ModAmount": 0,
+                     "ModPercent": 0,
+                     "PercentOfFinalPrice": 0,
+                     "Note": "",
+                     "Code": "",
+                     "VisualOrder": 13,
+                     "Id": "10"
+                  },
+                  "IndirectLabor": {
+                     "CalcAmount": 0,
+                     "CalcPercent": 0,
+                     "AdjAmount": 0,
+                     "AdjPercent": 0,
+                     "ModAmount": 0,
+                     "ModPercent": 0,
+                     "PercentOfFinalPrice": 0,
+                     "Note": "",
+                     "Code": "",
+                     "VisualOrder": 14,
+                     "Id": "11"
+                  },
+                  "LaborTax": {
+                     "CalcAmount": 0,
+                     "CalcPercent": 0,
+                     "AdjAmount": 0,
+                     "AdjPercent": 0,
+                     "ModAmount": 0,
+                     "ModPercent": 0,
+                     "PercentOfFinalPrice": 0,
+                     "Note": "",
+                     "Code": "",
+                     "VisualOrder": 17,
+                     "Id": "12"
+                  },
+                  "CalcAmount": 1000000.00,
+                  "CalcPercent": 0,
+                  "AdjAmount": 0,
+                  "AdjPercent": 0,
+                  "ModAmount": 1000000.00.,
+                  "ModPercent": 0,
+                  "PercentOfFinalPrice": 10.000,
+                  "Note": "",
+                  "Code": "",
+                  "VisualOrder": 18,
+                  "Id": "13"
+               },
+               "Equipment": {
+                  "CalcAmount": 0,
+                  "CalcPercent": 0,
+                  "AdjAmount": 0,
+                  "AdjPercent": 0,
+                  "ModAmount": 0,
+                  "ModPercent": 0,
+                  "PercentOfFinalPrice": 0,
+                  "Note": "",
+                  "Code": "",
+                  "VisualOrder": 19,
+                  "Id": "15"
+               },
+               "GeneralExpenses": {
+                  "CalcAmount": 1000.00,
+                  "CalcPercent": 0,
+                  "AdjAmount": 0,
+                  "AdjPercent": 0,
+                  "ModAmount": 1000.00,
+                  "ModPercent": 0,
+                  "PercentOfFinalPrice": 1.3,
+                  "Note": "",
+                  "Code": "",
+                  "VisualOrder": 20,
+                  "Id": "16"
+               },
+               "Subcontracts": {
+                  "CalcAmount": 0,
+                  "CalcPercent": 0,
+                  "AdjAmount": 0,
+                  "AdjPercent": 0,
+                  "ModAmount": 0,
+                  "ModPercent": 0,
+                  "PercentOfFinalPrice": 0,
+                  "Note": "",
+                  "Code": "",
+                  "VisualOrder": 21,
+                  "Id": "14"
+               },
+               "Quotes": {
+                  "CalcAmount": 0,
+                  "CalcPercent": 0,
+                  "AdjAmount": 0,
+                  "AdjPercent": 0,
+                  "ModAmount": 0,
+                  "ModPercent": 0,
+                  "PercentOfFinalPrice": 0,
+                  "Note": "",
+                  "Code": "",
+                  "VisualOrder": 22,
+                  "Id": "3"
+               },
+               "CalcAmount": 100000.0,
+               "CalcPercent": 0,
+               "AdjAmount": 0,
+               "AdjPercent": 0,
+               "ModAmount": 100000.7,
+               "ModPercent": 0,
+               "PercentOfFinalPrice": 10.000,
+               "Note": "",
+               "Code": "",
+               "VisualOrder": 24,
+               "Id": "17"
+            },
+            "TotalOverhead": {
+               "MaterialOverhead": {
+                  "CalcAmount": 10000.00,
+                  "CalcPercent": 8,
+                  "AdjAmount": 0,
+                  "AdjPercent": 0,
+                  "ModAmount": 100000.00,
+                  "ModPercent": 8,
+                  "PercentOfFinalPrice": 1.000,
+                  "Note": "",
+                  "Code": "",
+                  "VisualOrder": 25,
+                  "Id": "18"
+               },
+               "LaborOverhead": {
+                  "Description": null,
+                  "BasedOn": "Based on % of labor cost",
+                  "Rate": 0,
+                  "FieldLaborIncluded": false,
+                  "ShopLaborIncluded": false,
+                  "IncidentalLaborIncluded": false,
+                  "LaborFactoringIncluded": false,
+                  "IndirectLaborIncluded": false,
+                  "CalcAmount": 10000.0,
+                  "CalcPercent": 25,
+                  "AdjAmount": 0,
+                  "AdjPercent": 0,
+                  "ModAmount": 10000.0,
+                  "ModPercent": 25,
+                  "PercentOfFinalPrice": 10.000,
+                  "Note": "",
+                  "Code": "",
+                  "VisualOrder": 26,
+                  "Id": "20"
+               },
+               "EquipmentOverhead": {
+                  "CalcAmount": 0,
+                  "CalcPercent": 0,
+                  "AdjAmount": 0,
+                  "AdjPercent": 0,
+                  "ModAmount": 0,
+                  "ModPercent": 0,
+                  "PercentOfFinalPrice": 0,
+                  "Note": "",
+                  "Code": "",
+                  "VisualOrder": 27,
+                  "Id": "22"
+               },
+               "GeneralExpensesOverhead": {
+                  "CalcAmount": 100.00,
+                  "CalcPercent": 4,
+                  "AdjAmount": 0,
+                  "AdjPercent": 0,
+                  "ModAmount": 100.00,
+                  "ModPercent": 4,
+                  "PercentOfFinalPrice": 0.052,
+                  "Note": "",
+                  "Code": "",
+                  "VisualOrder": 28,
+                  "Id": "23"
+               },
+               "SubcontractsOverhead": {
+                  "CalcAmount": 0,
+                  "CalcPercent": 0,
+                  "AdjAmount": 0,
+                  "AdjPercent": 0,
+                  "ModAmount": 0,
+                  "ModPercent": 0,
+                  "PercentOfFinalPrice": 0,
+                  "Note": "",
+                  "Code": "",
+                  "VisualOrder": 29,
+                  "Id": "21"
+               },
+               "QuotesOverhead": {
+                  "CalcAmount": 0,
+                  "CalcPercent": 0,
+                  "AdjAmount": 0,
+                  "AdjPercent": 0,
+                  "ModAmount": 0,
+                  "ModPercent": 0,
+                  "PercentOfFinalPrice": 0,
+                  "Note": "",
+                  "Code": "",
+                  "VisualOrder": 30,
+                  "Id": "19"
+               },
+               "AdjustmentOverhead": {
+                  "CalcAmount": 0,
+                  "CalcPercent": 0,
+                  "AdjAmount": 0,
+                  "AdjPercent": 0,
+                  "ModAmount": 0,
+                  "ModPercent": 0,
+                  "PercentOfFinalPrice": 0,
+                  "Note": "",
+                  "Code": "",
+                  "VisualOrder": 133,
+                  "Id": "24"
+               },
+               "CalcAmount": 10000.63,
+               "CalcPercent": 10.000,
+               "AdjAmount": 0,
+               "AdjPercent": 0,
+               "ModAmount": 100000.00,
+               "ModPercent": 10.000,
+               "PercentOfFinalPrice": 10.000,
+               "Note": "",
+               "Code": "",
+               "VisualOrder": 134,
+               "Id": "25"
+            },
+            "CalcAmount": 100000.00,
+            "CalcPercent": 0,
+            "AdjAmount": 0,
+            "AdjPercent": 0,
+            "ModAmount": 100000.00,
+            "ModPercent": 0,
+            "PercentOfFinalPrice": 10.000,
+            "Note": "",
+            "Code": "",
+            "VisualOrder": 135,
+            "Id": "40"
+         },
+         "TotalMarkUp": {
+            "Description": null,
+            "MaterialMarkup": {
+               "CalcAmount": 1000.00,
+               "CalcPercent": 4,
+               "AdjAmount": 0,
+               "AdjPercent": 0,
+               "ModAmount": 1000.00,
+               "ModPercent": 4,
+               "PercentOfFinalPrice": 1.000,
+               "Note": "",
+               "Code": "",
+               "VisualOrder": 136,
+               "Id": "26"
+            },
+            "LaborMarkup": {
+               "Description": null,
+               "BasedOn": "Based on % of labor cost & overhead",
+               "Rate": 0,
+               "FieldLaborIncluded": false,
+               "ShopLaborIncluded": false,
+               "IncidentalLaborIncluded": false,
+               "LaborFactoringIncluded": false,
+               "IndirectLaborIncluded": false,
+               "CalcAmount": 100000.00,
+               "CalcPercent": 10.0,
+               "AdjAmount": 0,
+               "AdjPercent": 0,
+               "ModAmount": 100000.00,
+               "ModPercent": 10.0,
+               "PercentOfFinalPrice": 1.000,
+               "Note": "",
+               "Code": "",
+               "VisualOrder": 137,
+               "Id": "28"
+            },
+            "EquipmentMarkup": {
+               "CalcAmount": 0,
+               "CalcPercent": 0,
+               "AdjAmount": 0,
+               "AdjPercent": 0,
+               "ModAmount": 0,
+               "ModPercent": 0,
+               "PercentOfFinalPrice": 0,
+               "Note": "",
+               "Code": "",
+               "VisualOrder": 138,
+               "Id": "30"
+            },
+            "GeneralExpensesMarkup": {
+               "CalcAmount": 100.00,
+               "CalcPercent": 2.5,
+               "AdjAmount": 0,
+               "AdjPercent": 0,
+               "ModAmount": 100.00,
+               "ModPercent": 2.5,
+               "PercentOfFinalPrice": 0.034,
+               "Note": "",
+               "Code": "",
+               "VisualOrder": 139,
+               "Id": "31"
+            },
+            "SubcontractsMarkup": {
+               "CalcAmount": 0,
+               "CalcPercent": 0,
+               "AdjAmount": 0,
+               "AdjPercent": 0,
+               "ModAmount": 0,
+               "ModPercent": 0,
+               "PercentOfFinalPrice": 0,
+               "Note": "",
+               "Code": "",
+               "VisualOrder": 140,
+               "Id": "29"
+            },
+            "QuotesMarkup": {
+               "CalcAmount": 0,
+               "CalcPercent": 0,
+               "AdjAmount": 0,
+               "AdjPercent": 0,
+               "ModAmount": 0,
+               "ModPercent": 0,
+               "PercentOfFinalPrice": 0,
+               "Note": "",
+               "Code": "",
+               "VisualOrder": 141,
+               "Id": "27"
+            },
+            "AdjustmentMarkup": {
+               "CalcAmount": 0,
+               "CalcPercent": 0,
+               "AdjAmount": 0,
+               "AdjPercent": 0,
+               "ModAmount": 0,
+               "ModPercent": 0,
+               "PercentOfFinalPrice": 0,
+               "Note": "",
+               "Code": "",
+               "VisualOrder": 244,
+               "Id": "32"
+            },
+            "BasedOn": "Calculate Total Markup based on entered percentages",
+            "LaborRiskRationPercent": 0,
+            "CalcAmount": 10000.00,
+            "CalcPercent": 1.000,
+            "AdjAmount": 0,
+            "AdjPercent": 0,
+            "ModAmount": 10000.00,
+            "ModPercent": 1.000,
+            "PercentOfFinalPrice": 1.000,
+            "Note": "",
+            "Code": "",
+            "VisualOrder": 245,
+            "Id": "33"
+         },
+         "JobExpense": {
+            "Description": "Job Expense",
+            "BillingMethod": "Standard",
+            "RangeList": [],
+            "CalcAmount": 0,
+            "CalcPercent": 0,
+            "AdjAmount": 0,
+            "AdjPercent": 0,
+            "ModAmount": 0,
+            "ModPercent": 0,
+            "PercentOfFinalPrice": 0,
+            "Note": "",
+            "Code": "",
+            "VisualOrder": 249,
+            "Id": "34"
+         },
+         "Financing": {
+            "Description": "Financing",
+            "BillingMethod": "Standard",
+            "RangeList": [],
+            "CalcAmount": 0,
+            "CalcPercent": 0,
+            "AdjAmount": 0,
+            "AdjPercent": 0,
+            "ModAmount": 0,
+            "ModPercent": 0,
+            "PercentOfFinalPrice": 0,
+            "Note": "",
+            "Code": "",
+            "VisualOrder": 250,
+            "Id": "35"
+         },
+         "Bonding": {
+            "Description": "Bonding",
+            "BillingMethod": "Standard",
+            "RangeList": [],
+            "CalcAmount": 0,
+            "CalcPercent": 0,
+            "AdjAmount": 0,
+            "AdjPercent": 0,
+            "ModAmount": 0,
+            "ModPercent": 0,
+            "PercentOfFinalPrice": 0,
+            "Note": "",
+            "Code": "",
+            "VisualOrder": 251,
+            "Id": "36"
+         },
+         "FinalAdj": {
+            "CalcAmount": 0,
+            "CalcPercent": 0,
+            "AdjAmount": 0,
+            "AdjPercent": 0,
+            "ModAmount": 0,
+            "ModPercent": 0,
+            "PercentOfFinalPrice": 0,
+            "Note": "",
+            "Code": "",
+            "VisualOrder": 252,
+            "Id": "37"
+         },
+         "CalcAmount": 100000.00,
+         "CalcPercent": 0,
+         "AdjAmount": 0,
+         "AdjPercent": 0,
+         "ModAmount": 100000.00,
+         "ModPercent": 0,
+         "PercentOfFinalPrice": 100,
+         "Note": "",
+         "Code": "",
+         "VisualOrder": 253,
+         "Id": "38"
+      },
+      "Tax": {
+         "Description": "Global Tax",
+         "CalcAmount": 0,
+         "CalcPercent": 0,
+         "AdjAmount": 0,
+         "AdjPercent": 0,
+         "ModAmount": 0,
+         "ModPercent": 0,
+         "PercentOfFinalPrice": 0,
+         "Note": "",
+         "Code": "",
+         "VisualOrder": 254,
+         "Id": "39"
+      },
+      "CalcAmount": 100000.00,
+      "CalcPercent": null,
+      "AdjAmount": null,
+      "AdjPercent": null,
+      "ModAmount": 100000.00,
+      "ModPercent": null,
+      "PercentOfFinalPrice": 0,
+      "Note": "",
+      "Code": "",
+      "VisualOrder": 255,
+      "Id": "1000"
+   },
+   "BidSummaryID": "12345"
+}
+
+Get the Bid Breakdown View list
+Call the Bid Breakdown View API to get the list of Bid Breakdown Views for an Estimate
+
+GET https://cloud.api.trimble.com/anywhere/closeout/v1/bidbreakdownview/{databaseToken}/{estimateID}
+
+This will return the list of Bid Breakdown Views for a specific Estimate.
+
+Example response
+[
+  {
+    "BidBreakdownViewId": "abcd",
+    "Name": "SC1",
+    "Order": 0,
+    "GroupOptions": [
+      {
+        "Id": "5",
+        "Name": "Bid Item",
+        "Order": 1
+      },
+      {
+        "Id": "7",
+        "Name": "Sort Code 1",
+        "Order": 2
+      }
+    ],
+    "AutoAllocateRemainderIncidentalLabor": true,
+    "AutoAllocateRemainderLaborFactoring": true,
+    "AutoAllocateRemainderLaborEscalation": true,
+    "AutoAllocateRemainderIndirectLabor": true,
+    "AutoAllocateRemainderSubcontracts": true,
+    "AutoAllocateRemainderEquipment": true,
+    "AutoAllocateRemainderGeneralExpenses": true,
+    "AutoAllocateRemainderQuotes": true,
+    "RoundTotal": 0,
+    "AutoAllocationMethod": 1
+  },
+  {
+    "BidBreakdownViewId": "efghjsd",
+    "Name": "SC2",
+    "Order": 1,
+    "GroupOptions": [
+      {
+        "Id": "1",
+        "Name": "Drawing",
+        "Order": 1
+      },
+      {
+        "Id": "8",
+        "Name": "Sort Code 2",
+        "Order": 2
+      }
+    ],
+    "AutoAllocateRemainderIncidentalLabor": true,
+    "AutoAllocateRemainderLaborFactoring": true,
+    "AutoAllocateRemainderLaborEscalation": true,
+    "AutoAllocateRemainderIndirectLabor": true,
+    "AutoAllocateRemainderSubcontracts": true,
+    "AutoAllocateRemainderEquipment": true,
+    "AutoAllocateRemainderGeneralExpenses": true,
+    "AutoAllocateRemainderQuotes": true,
+    "RoundTotal": 0,
+    "AutoAllocationMethod": 1
+  }
+]
+
+Inforamtion
+
+Bid Breakdown View Ids do not change, so they can be saved for future use.
+
+Get the Bid Breakdown Details
+Call the Bid Breakdown API to get the details of Bid Breakdown for a Bid Summary and Bid Breakdown View
+
+GET https://cloud.api.trimble.com/anywhere/closeout/v1/bidbreakdown/{databaseToken}/{bidSummaryID}/{bidBreakdownViewID}?pageIndex={pageNumber}
+
+This will return the paginated Bid Breakdown Details for specific Bid Summary and Bid Breakdown View.
+
+Example response
+{
+  "pageIndex": 0,
+  "totalItems": 2,
+  "pageSize": 100,
+  "items": [
+    {
+      "BidBreakdownViewId": "abcd",
+      "BidSummaryId": "efgh",
+      "GroupedCategories": [
+        {
+          "Description": "No Bid Item",
+          "Id": "xyz",
+          "Order": 1
+        },
+        {
+          "Description": "",
+          "Id": "",
+          "Order": -1
+        }
+      ],
+      "RowType": "Regular",
+      "TotalAmount": 136,
+      "TotalMaterialAmount": 36,
+      "TotalLaborHours": 10,
+      "TotalLaborAmount": 100,
+      "FieldLaborHours": 10,
+      "FieldLaborAmount": 100,
+      "ShopLaborHours": 0,
+      "ShopLaborAmount": 0,
+      "IncidentalLaborHours": 0,
+      "IncidentalLaborAmount": 0,
+      "LaborFactoringHours": 0,
+      "LaborFactoringAmount": 0,
+      "LaborEscalationAmount": 0,
+      "IndirectLaborHours": 0,
+      "IndirectLaborAmount": 0,
+      "Equipment": 0,
+      "GeneralExpenses": 0,
+      "Subcontracts": 0,
+      "Quotes": 0,
+      "Overhead": 0,
+      "MarkUp": 0,
+      "DefineAdj": 0,
+      "RoundingAdj": 0,
+      "Unit": 0
+    },
+    {
+      "BidBreakdownViewId": "abcd",
+      "BidSummaryId": "efgh",
+      "GroupedCategories": [
+        {
+          "Description": "No Bid Item",
+          "Id": "qwerty",
+          "Order": 1
+        },
+        {
+          "Description": "Common Tasks",
+          "Id": "asdfg",
+          "Order": 1002
+        }
+      ],
+      "RowType": "Regular",
+      "TotalAmount": 136.67,
+      "TotalMaterialAmount": 91.67,
+      "TotalLaborHours": 4.5,
+      "TotalLaborAmount": 45,
+      "FieldLaborHours": 4.5,
+      "FieldLaborAmount": 45,
+      "ShopLaborHours": 0,
+      "ShopLaborAmount": 0,
+      "IncidentalLaborHours": 0,
+      "IncidentalLaborAmount": 0,
+      "LaborFactoringHours": 0,
+      "LaborFactoringAmount": 0,
+      "LaborEscalationAmount": 0,
+      "IndirectLaborHours": 0,
+      "IndirectLaborAmount": 0,
+      "Equipment": 0,
+      "GeneralExpenses": 0,
+      "Subcontracts": 0,
+      "Quotes": 0,
+      "Overhead": 0,
+      "MarkUp": 0,
+      "DefineAdj": 0,
+      "RoundingAdj": 0,
+      "Unit": 0
+    }
+  ],
+  "links": {
+    "self": "https://cloud.api.trimble.com/anywhere/closeout/v1/bidbreakdown/databaseToken/bidSummaryId/bidBreakdownviewId?pageIndex=1",
+    "first": "https://cloud.api.trimble.com/anywhere/closeout/v1/bidbreakdown/databaseToken/bidSummaryId/bidBreakdownviewId?pageIndex=0",
+    "last": "https://cloud.api.trimble.com/anywhere/closeout/v1/bidbreakdown/databaseToken/bidSummaryId/bidBreakdownviewId?pageIndex=2"
+  }
+}
+
+Inforamtion
+
+The pageNumber is optional. The default value is 0 (the first page).
+
+Get the contract list
+Call the Contract List API to get a list of contracts for a Project
+
+GET https://cloud.api.trimble.com/anywhere/changeorder/v1/contracts/{databaseToken}/{ProjectID}
+
+This will return a list of Contracts.
+
+Example response
+[
+    {
+        "ContractID": "AaBbCc123",
+        "Name": "Contract A",
+        "Number": "Contract 1",
+        "Date": "2021-06-28",
+        "Estimates": [
+                        {
+                          "contractID": 0,
+                          "jobID": 0,
+                          "estimateID": "string",
+                          "name": "string"
+                        }
+                      ],
+        "BaseContractAmount": 0.00,
+        "ChangeOrderAmount": null,
+        "TotalAmount": 0.00,
+        "COLaborHours": 0.000,
+        "BCLaborHours": 0.000,
+        "TotalLaborHours": 0.000
+    },
+    {
+        "ContractID": "XxYyZz456",
+        "Name": "Contract B",
+        "Number": "Contract 2",
+        "Date": "2021-06-28",
+        "Estimates": null,
+        "BaseContractAmount": 0.00,
+        "ChangeOrderAmount": null,
+        "TotalAmount": 0.00,
+        "COLaborHours": 0.000,
+        "BCLaborHours": 0.000,
+        "TotalLaborHours": 0.000
+    },
+]
+
+Get PCO list
+Get the list of PCOs for a Contract
+
+GET hhttps://cloud.api.trimble.com/anywhere/changeorder/v1/pcos/{databaseToken}/{contractID}
+
+This will return a list of PCOs.
+
+Example response
+{
+    "pageIndex": 0,
+    "totalItems": 7,
+    "pageSize": 100,
+    "items": [
+        {
+            "PcoID": "AaBbCc123",
+            "Name": "PCO A",
+            "Number": "1",
+            "IsDeleted": false,
+            "BidDueDate": null,
+            "CreatedDate": "2021-06-28",
+            "ProjectStartDate": null,
+            "Status": "Pending",
+            "IsFrozen": false,
+            "FrozenDate": null,
+            "ChangeOrderNumber": null,
+            "ChangeOrderDate": null,
+            "SellingPrice": null,
+            "MaterialAmount": null,
+            "DirectLaborAmount": null,
+            "IndirectLaborAmount": null,
+            "EquipmentAmount": null,
+            "GeneralExpensesAmount": null,
+            "SubcontractsAmount": null,
+            "QuotesAmount": null,
+            "OverheadMarkupAmount": null,
+            "GlobalTaxAmount": null,
+            "TotalAmount": null,
+            "OverheadMarkupPct": null,
+            "LaborHours": null,
+            "Subs": null,
+            "Quotes": null,
+            "ReferenceFields": null
+        },
+        {
+            "PcoID": "XxYyZz456",
+            "Name": "PCO B",
+            "Number": "2",
+            "IsDeleted": false,
+            "BidDueDate": null,
+            "CreatedDate": "2021-06-28",
+            "ProjectStartDate": null,
+            "Status": "Pending",
+            "IsFrozen": false,
+            "FrozenDate": null,
+            "ChangeOrderNumber": null,
+            "ChangeOrderDate": null,
+            "SellingPrice": null,
+            "MaterialAmount": null,
+            "DirectLaborAmount": null,
+            "IndirectLaborAmount": null,
+            "EquipmentAmount": null,
+            "GeneralExpensesAmount": null,
+            "SubcontractsAmount": null,
+            "QuotesAmount": null,
+            "OverheadMarkupAmount": null,
+            "GlobalTaxAmount": null,
+            "TotalAmount": null,
+            "OverheadMarkupPct": null,
+            "LaborHours": null,
+            "Subs": null,
+            "Quotes": null,
+            "ReferenceFields": null
+        }
+    ],
+    "links": {
+        "self": "",
+        "first": "",
+        "last": ""
+    }
+}
+
+Get the PCO info
+Get information for a specific PCO
+
+GET https://cloud.api.trimble.com/anywhere/changeorder/v1/pco/{databaseToken}/{PCOID}
+
+This will return information for a specific PCO.
+
+Example response
+{
+    "PCOID": "AaBbCc123",
+    "Name": "PCO A",
+    "Number": "1",
+    "CreatedBy": "exampleresponse",
+    "LaborColumn": "A",
+    "ImperialMetric": "Imperial",
+    "Status": "Pending",
+    "Industry": "Electrical",
+    "ApplyMarkupOnOverhead": true,
+    "ApplyMarkupAndOverheadOnTax": true,
+    "VendorPricingPrecedence": true,
+    "Contract": "A",
+    "ChangeOrderNumber": null,
+    "RFP": "1",
+    "CODate": null,
+    "ApprovedChangeOrderAmount": null,
+    "DueDate": null,
+    "StartDate": null,
+    "EndDate": null,
+    "Duration": 0.0,
+    "TimeInterval": "Days",
+    "CreatedDate": "2021-06-28",
+    "Notes": "<div style=\"font-size:12pt;font-family:Calibri;\"></div>",
+    "BidSummaryName": "Default",
+    "BidSummaryID": "XxYyZz123",
+    "IsDeleted": false,
+    "BreakdownCategories": [
+        {
+            "ID": "xxxx",
+            "Name": "Area",
+            "Label": null
+        },
+        {
+            "ID": "yyyy",
+            "Name": "Bid Item",
+            "Label": null
+        }
+    ],
+    "ReferenceFields": {}
+}
+
+Get the ContractQuoteLabels
+Get list of ContractQuoteLabels for a contract
+
+GET https://cloud.api.trimble.com/anywhere/changeorder/v1/ContractQuoteLabels/{databaseToken}/{contractID}
+
+This will return a list of ContractQuoteLabels.
+
+Example response
+[
+    {
+        "Index": 1,
+        "Name": "Quote01"
+    },
+    {
+        "Index": 2,
+        "Name": "Quote02"
+    },
+    {
+        "Index": 3,
+        "Name": "Quote03"
+    },
+    {
+        "Index": 4,
+        "Name": "Quote04"
+    }
+]
+
+Get the ContractSubcontractLabels
+Get list of ContractSubcontractLabels for a contract
+
+GET https://cloud.api.trimble.com/anywhere/changeorder/v1/ContractSubcontractLabels/{databaseToken}/{contractID}
+
+This will return a list of ContractSubcontractLabels.
+
+Example response
+[
+    {
+        "Index": 1,
+        "Name": "Subcontract01"
+    },
+    {
+        "Index": 2,
+        "Name": "Subcontract02"
+    },
+    {
+        "Index": 3,
+        "Name": "Subcontract03"
+    },
+    {
+        "Index": 4,
+        "Name": "Subcontract04"
+    }
+]
+
+Get the Contract Statuses
+Get list of Statuses for a contract
+
+GET https://cloud.api.trimble.com/anywhere/changeorder/v1/ContractStatuses/{databaseToken}/{contractID}
+
+This will return a list of Contract Statuses.
+
+Example response
+[
+    {
+        "Description": "Pending",
+        "IncludeInCOToDate": false
+    },
+    {
+        "Description": "Rejected",
+        "IncludeInCOToDate": false
+    }
+]
+
+Get extension details for a specific pco
+Call the pco extension item details API to get extension information for a specific pco
+
+GET https://cloud.api.trimble.com/anywhere/changeorder/v1/extensionItemDetailsFileSignalR{databaseToken}/{pcoID}/{connectionID}
+
+This will send a message with a URL via SignalR when the file is available for download.
+
+Example response
+[
+  {
+    "TakeoffID": 12345,
+    "TakeOffItemID": 67890,
+    "JobID": 1234,
+    "ItemDescription": "AaBbCc123",
+    "Attributes":"1/2\"",
+    "Qty": 10.0,
+    "PriceUnit": "E",
+    "Price": 0.0,
+    "MaterialCondition": "Quoted",
+    "Discount": 0.0,
+    "Cost": 0.0,
+    "CostAdj": 0.0,
+    "NetCost": 0.0,
+    "TotalMaterial": 0.0,
+    "LaborUnit": "E",
+    "FieldLaborAdj": 2.222,
+    "FieldLabor": 0.028,
+    "TotalFieldLabor": 0.286222,
+    "ShopLabor": 0.0,
+    "ShopQty": 0.0,
+    "TotalShopLabor": 0.0,
+    "TotalLabor": 0.286222,
+    "SortCode1": "aaaabbbb",
+    "SortCode2": "ccccdddd",
+    "SortCode3": "eeeeffff",
+    "SortCode4": "gggghhhh",
+    "SortCode5": "iiiijjjj",
+    "SortCode6": "kkkklllll",
+    "SortCode7": "mmmmnnnnn",
+    "SortCode8": "oooopppp",
+    "SortCode1ID": 1234,
+    "SortCode2ID": 5678,
+    "SortCode3ID": null,
+    "SortCode4ID": null,
+    "SortCode5ID": null,
+    "SortCode6ID": null,
+    "SortCode7ID": null,
+    "SortCode8ID": null,
+    "ERPSystemCode": null,
+    "CatalogNumber": "Cat123",
+    "JobDiscountGroupName": null,
+    "LaborCondition": "Normal",
+    "LbrByWtCategory": null,
+    "Manufacturer": "Generic",
+    "MeasureType": "Count",
+    "PriceCode": "PC123",
+    "PriceDate": "1970-01-01T00:00:00.000Z",
+    "ItemArea": 3.333,
+    "AreaUnit": "E",
+    "TotalArea": 100.0,
+    "Volume": 5.555,
+    "VolumeUnit": "E",
+    "TotalVolume": 1000.0,
+    "Weight": 6.666,
+    "WeightUnit": "E",
+    "TotalWeight": 1999.8,
+    "Vendor": null,
+    "VendorCode": "USA Code",
+    "VendorPrice": null,
+    "VendorNote": null,
+    "WallThickness": 2.222,
+    "PriceUnitID": 1,
+    "PriceConditionID": 3,
+    "LaborUnitID": 1,
+    "AreaUnitID": 1,
+    "DiscountGroupID": null,
+    "LaborConditionID": 0,
+    "LaborByWeightCategoryID": null,
+    "MeasureTypeID": 1,
+    "ItemVolumeUnitID": 1,
+    "ItemWeightUnitID": 2,
+    "VendorCompanyBranchID": null,
+    "TakeOffItemGroupID": 12345,
+    "TakeoffItemPriceID": 67890,
+    "Drawing": "Building 1",
+    "DrawingID": 12345,
+    "Area": "Area 1",
+    "AreaID": 56789,
+    "Phase": "Phase 1",
+    "PhaseID": 12345,
+    "System": "System 1",
+    "SystemID": 67890,
+    "BidItem": "BidItem 1",
+    "BidItemID": 276306,
+    "LineNumber": "LineNumber 1",
+    "LineNumberID": 12345,
+    "Spool": "Phase 1",
+    "SpoolID": 276309,
+    "Misc3": "PID 1",
+    "Misc3ID": 276310,
+    "Misc4": "Rack 1",
+    "Misc4ID": 276311,
+    "Misc5": "Service 1",
+    "Misc5ID": 276312,
+    "Misc6": "Takeoff Task 1",
+    "Misc6ID": 276313,
+    "Misc7": "Uniformat 1",
+    "Misc7ID": 276314,
+    "LaborFactor": "Normal",
+    "LaborFactorID": 110189,
+    "SpecificationID": 26301,
+    "SpecificationName": "No Specification",
+    "TakeoffDetailID": 12345678,
+    "AssemblyName": null,
+    "EncodedPath": "yyyyyy-yyyy-yyyy-yyyy-yyyyyyyyy_12345",
+    "Estimator": "example_response@trimble.com",
+    "GUID": "x0y1zc22-xx12-yy34-bb99-a1b44c5d43a5",
+    "Industry": "Electrical",
+    "IsDesignationItem": true,
+    "MaterialAdjustmentPct": 15.0,
+    "MaterialPricingMethod": "Quantity",
+    "TakeoffAssemblyID": null,
+    "TakeoffLabel": "Desig1",
+    "WeightUnitWeight": null,
+    "DesignationUniqueID": "xxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+    "AreaCode": "C1Code",
+    "BidItemCode": "A1Code",
+    "SpoolCode": "P1Code",
+    "DrawingCode": "B1Code",
+    "PhaseCode": "L1Code",
+    "LineNumberCode": "MF1Code",
+    "SystemCode": "LN1Code",
+    "Misc3Code": "PID1Code",
+    "Misc4Code": "R1Code",
+    "Misc5Code": "S1Code",
+    "Misc6Code": "TT1Code",
+    "Misc7Code": "U1Code",
+    "NetCostAdjPct": 0.0,
+    "NetPrice": 0.0,
+    "PricingMethod": "Price"
+  }
+]
+
+Inforamtion
+
+Usage of this API requires a connection to the API SignalR hub to get the connection ID. Please follow Sample Code

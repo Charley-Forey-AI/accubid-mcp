@@ -1,0 +1,20 @@
+capabilities:
+  tools_domains:
+    - database
+    - project
+    - estimate
+    - closeout
+    - changeorder
+    - insights
+    - context
+    - workflows
+  auth_mode: client_credentials
+  tool_count: 34
+  api_base: https://cloud.api.trimble.com/anywhere
+  api_version: v1
+  resources_enabled: true
+  prompts_enabled: true
+  readiness_route: /ready
+  metrics_route: /metrics
+  signalr_note: "Extension file endpoints require a SignalR connection_id."
+  id_flow: "databaseToken -> projectID -> estimateID -> bidSummaryID/contractID/pcoID"

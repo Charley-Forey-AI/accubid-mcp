@@ -1,0 +1,64 @@
+{
+  "format": 1,
+  "restore": {
+    "C:\\Users\\cforey\\Desktop\\accubid-mcp\\accubid-api-docs\\api-tools-main\\ExtensionDataSignalR_SampleCode\\ExtensionDataSignalR_SampleCode.csproj": {}
+  },
+  "projects": {
+    "C:\\Users\\cforey\\Desktop\\accubid-mcp\\accubid-api-docs\\api-tools-main\\ExtensionDataSignalR_SampleCode\\ExtensionDataSignalR_SampleCode.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Users\\cforey\\Desktop\\accubid-mcp\\accubid-api-docs\\api-tools-main\\ExtensionDataSignalR_SampleCode\\ExtensionDataSignalR_SampleCode.csproj",
+        "projectName": "ExtensionDataSignalR_SampleCode",
+        "projectPath": "C:\\Users\\cforey\\Desktop\\accubid-mcp\\accubid-api-docs\\api-tools-main\\ExtensionDataSignalR_SampleCode\\ExtensionDataSignalR_SampleCode.csproj",
+        "packagesPath": "C:\\Users\\cforey\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\cforey\\Desktop\\accubid-mcp\\accubid-api-docs\\api-tools-main\\ExtensionDataSignalR_SampleCode\\obj\\",
+        "projectStyle": "PackageReference",
+        "skipContentFileWrite": true,
+        "UsingMicrosoftNETSdk": false,
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\cforey\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net47"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net47": {
+            "projectReferences": {}
+          }
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        }
+      },
+      "frameworks": {
+        "net47": {
+          "dependencies": {
+            "Microsoft.AspNetCore.SignalR.Client": {
+              "target": "Package",
+              "version": "[6.0.9, )"
+            },
+            "Microsoft.Extensions.Logging.Debug": {
+              "target": "Package",
+              "version": "[6.0.0, )"
+            },
+            "Trimble.Identity": {
+              "target": "Package",
+              "version": "[4.0.9, )"
+            }
+          }
+        }
+      }
+    }
+  }
+}
