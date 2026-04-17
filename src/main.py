@@ -17,7 +17,7 @@ from fastmcp.server.middleware.middleware import CallNext, Middleware, Middlewar
 from .auth import AccubidAuth
 from .client import AccubidClient
 from .config import Config
-from .errors import DependencyCheckError
+from .errors import AuthError, DependencyCheckError
 from .log_config import get_logger, setup_logging
 from .metrics import render_metrics
 from .observability import clear_request_id, error_response, success_response
@@ -230,8 +230,24 @@ def run_http() -> None:
 def main() -> None:
     """CLI dispatch. Default STDIO; pass --http for HTTP transport."""
     if Config.STARTUP_VALIDATE_DEPENDENCIES:
-        asyncio.run(app.run_dependency_checks())
-        logger.info("Startup dependency checks passed.")
+        try:
+            asyncio.run(app.run_dependency_checks())
+        except DependencyCheckError as exc:
+            # Authorization-code mode: missing token file / failed refresh raises AuthError and would
+            # exit before uvicorn binds (nginx 502). Allow the server to start so /health and MCP work
+            # once tokens exist at OAUTH_TOKEN_PATH.
+            if Config.ACCUBID_OAUTH_GRANT == "authorization_code" and isinstance(exc.__cause__, AuthError):
+                cause = str((exc.details or {}).get("cause", exc))
+                logger.warning(
+                    "Startup dependency check skipped (authorization_code / AuthError): %s. "
+                    "Server starting; set tokens at %s or run accubid-mcp-oauth-login.",
+                    cause,
+                    Config.oauth_token_path_resolved(),
+                )
+            else:
+                raise
+        else:
+            logger.info("Startup dependency checks passed.")
     if "--http" in sys.argv:
         run_http()
     else:
