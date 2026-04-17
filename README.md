@@ -29,7 +29,7 @@ MCP server for Accubid Anywhere APIs with Trimble Identity authentication.
 1. Copy `.env.example` to `.env`.
 2. Set **`ACCUBID_AUTH_MODE`** (`server`, `delegated`, or `hybrid`) and the variables below that match your deployment.
 3. **Server OAuth** (`ACCUBID_AUTH_MODE=server` or for fallback in `hybrid`): set `CLIENT_ID`, `CLIENT_SECRET`, and `ACCUBID_SCOPE` (e.g. `anywhere-database` … `anywhere-changeorder`). Set **`ACCUBID_OAUTH_GRANT`** to **`client_credentials`** or **`authorization_code`** (user token file + `accubid-mcp-oauth-login`; see `.env.example`).
-4. **Delegated / Agent Studio** (`ACCUBID_AUTH_MODE=delegated` or `hybrid`): use **streamable HTTP** from Studio so each request carries the **On behalf of actor** JWT. Configure **`ACCUBID_DELEGATED_ISSUER`**, optional **`ACCUBID_DELEGATED_JWKS_URL`**, **`ACCUBID_DELEGATED_AUDIENCE`**, and **`ACCUBID_DELEGATED_REQUIRED_SCOPES`** (e.g. `accubid_agentic_ai openid`). Pure **`delegated`** does not require `CLIENT_ID` for Accubid API calls.
+4. **Delegated / Agent Studio** (`ACCUBID_AUTH_MODE=delegated` or `hybrid`): use **streamable HTTP** from Studio so each request carries the **On behalf of actor** JWT. Configure **`ACCUBID_DELEGATED_ISSUER`**, optional **`ACCUBID_DELEGATED_JWKS_URL`**, **`ACCUBID_DELEGATED_AUDIENCE`**, and **`ACCUBID_DELEGATED_REQUIRED_SCOPES`**. The **`scope`** claim often lists only `accubid_agentic_ai` while Studio still shows `openid`; you may include **`openid`** in required scopes anyway—the server treats **`openid`** as satisfied when the JWT has OIDC identity claims **`iss`** and **`sub`** even if `openid` is not a token in **`scope`**. Pure **`delegated`** does not require `CLIENT_ID` for Accubid API calls.
 5. Install dependencies:
 
 ```bash

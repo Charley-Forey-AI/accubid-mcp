@@ -76,6 +76,25 @@ def _scope_claims(payload: dict[str, Any]) -> list[str]:
     return []
 
 
+def _missing_required_scopes(required: list[str], payload: dict[str, Any]) -> list[str]:
+    """Return required scope names not satisfied by the token.
+
+    The literal ``openid`` string is often omitted from the ``scope`` claim even when the client
+    requested the OpenID scope (Agent Studio still shows ``openid`` in the UI). If ``openid`` is
+    required but absent from ``scope``, treat it as satisfied when standard OIDC identity
+    claims are present (``iss`` and ``sub``).
+    """
+    have = set(_scope_claims(payload))
+    missing: list[str] = []
+    for name in required:
+        if name in have:
+            continue
+        if name == "openid" and payload.get("iss") and payload.get("sub"):
+            continue
+        missing.append(name)
+    return missing
+
+
 def verify_jwt_sync(token: str, *, jwks_uri: str) -> None:
     """Validate signature, issuer, audience, exp; check required scopes."""
     client = _get_jwk_client(jwks_uri)
@@ -103,7 +122,7 @@ def verify_jwt_sync(token: str, *, jwks_uri: str) -> None:
     required = Config.delegated_required_scopes_list()
     if required:
         have = set(_scope_claims(payload))
-        missing = [s for s in required if s not in have]
+        missing = _missing_required_scopes(required, payload)
         if missing:
             raise AuthError(
                 "Delegated JWT missing required scopes",
