@@ -135,6 +135,14 @@ def create_app() -> AppContainer:
         base_payload = {
             "capabilities": load_capabilities(),
             "api_base_url": Config.ACCUBID_API_BASE_URL,
+            "api_area_versions": {
+                "database": Config.ACCUBID_API_VERSION_DATABASE,
+                "estimate": Config.ACCUBID_API_VERSION_ESTIMATE,
+                "project": Config.ACCUBID_API_VERSION_PROJECT,
+                "project_folders": Config.ACCUBID_API_VERSION_PROJECT_FOLDERS,
+                "changeorder": Config.ACCUBID_API_VERSION_CHANGEORDER,
+                "closeout": Config.ACCUBID_API_VERSION_CLOSEOUT,
+            },
             "version": _app_version(),
         }
         try:

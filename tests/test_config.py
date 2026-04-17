@@ -59,6 +59,65 @@ def test_validate_rejects_invalid_oauth_grant() -> None:
         Config.validate()
 
 
+def test_accubid_api_url_per_area_and_project_folders() -> None:
+    """Trimble hosts each API module under its own version segment."""
+    original = (
+        Config.ACCUBID_API_BASE_URL,
+        Config.ACCUBID_API_VERSION_DATABASE,
+        Config.ACCUBID_API_VERSION_ESTIMATE,
+        Config.ACCUBID_API_VERSION_PROJECT,
+        Config.ACCUBID_API_VERSION_PROJECT_FOLDERS,
+        Config.ACCUBID_API_VERSION_CHANGEORDER,
+        Config.ACCUBID_API_VERSION_CLOSEOUT,
+    )
+    try:
+        Config.ACCUBID_API_BASE_URL = "https://cloud.api.trimble.com/anywhere"
+        Config.ACCUBID_API_VERSION_DATABASE = "v1"
+        Config.ACCUBID_API_VERSION_ESTIMATE = "v2"
+        Config.ACCUBID_API_VERSION_PROJECT = "v2"
+        Config.ACCUBID_API_VERSION_PROJECT_FOLDERS = "v1"
+        Config.ACCUBID_API_VERSION_CHANGEORDER = "v1"
+        Config.ACCUBID_API_VERSION_CLOSEOUT = "v1"
+        assert (
+            Config.accubid_api_url("database", "/Databases")
+            == "https://cloud.api.trimble.com/anywhere/database/v1/Databases"
+        )
+        assert (
+            Config.accubid_api_url("estimate", "/Estimates/x/y")
+            == "https://cloud.api.trimble.com/anywhere/estimate/v2/Estimates/x/y"
+        )
+        assert (
+            Config.accubid_api_url("project", "/Projects/db")
+            == "https://cloud.api.trimble.com/anywhere/project/v2/Projects/db"
+        )
+        assert (
+            Config.accubid_api_url("project", "/Folder")
+            == "https://cloud.api.trimble.com/anywhere/project/v1/Folder"
+        )
+        assert (
+            Config.accubid_api_url("project", "/Folders/db")
+            == "https://cloud.api.trimble.com/anywhere/project/v1/Folders/db"
+        )
+        assert (
+            Config.accubid_api_url("changeorder", "/Contracts/a/b")
+            == "https://cloud.api.trimble.com/anywhere/changeorder/v1/Contracts/a/b"
+        )
+        assert (
+            Config.accubid_api_url("closeout", "/FinalPrice/a/b")
+            == "https://cloud.api.trimble.com/anywhere/closeout/v1/FinalPrice/a/b"
+        )
+    finally:
+        (
+            Config.ACCUBID_API_BASE_URL,
+            Config.ACCUBID_API_VERSION_DATABASE,
+            Config.ACCUBID_API_VERSION_ESTIMATE,
+            Config.ACCUBID_API_VERSION_PROJECT,
+            Config.ACCUBID_API_VERSION_PROJECT_FOLDERS,
+            Config.ACCUBID_API_VERSION_CHANGEORDER,
+            Config.ACCUBID_API_VERSION_CLOSEOUT,
+        ) = original
+
+
 def test_validate_rejects_bad_circuit_breaker() -> None:
     original = Config.ACCUBID_CIRCUIT_BREAKER_FAILURES
     Config.ACCUBID_CIRCUIT_BREAKER_FAILURES = 0

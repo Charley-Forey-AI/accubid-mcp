@@ -238,6 +238,7 @@ When the API circuit breaker is open, error code `circuit_open` is returned.
   - `ACCUBID_COMPOSED_TOOL_CONCURRENCY` (default `4`)
 - Optional persisted circuit state file path:
   - `ACCUBID_CIRCUIT_STATE_FILE`
+- Accubid Anywhere HTTP base and per-module paths: requests use `ACCUBID_API_BASE_URL` (default `https://cloud.api.trimble.com/anywhere`) plus **`/{area}/{version}`** where **`version` is chosen per module**—for example `database` → `v1`, `estimate` → `v2`, `changeorder` / `closeout` → `v1`, `project` → `v2` for most routes and **`v1` for `/Folder` and `/Folders`** (configurable via `ACCUBID_API_VERSION_*` in `.env.example`). Override only if Trimble documents a different path for your tenant.
 - Production safety:
   - set `ENV=production` to enforce HTTPS for `ACCUBID_API_BASE_URL`.
 

@@ -123,7 +123,7 @@ class AccubidClient:
         params: Optional[Dict[str, Any]] = None,
         json_body: Optional[Dict[str, Any]] = None,
     ) -> Any:
-        url = f"{Config.ACCUBID_API_BASE_URL}/{area}/{Config.ACCUBID_API_VERSION}{endpoint_path}"
+        url = Config.accubid_api_url(area, endpoint_path)
         session = self._get_session()
         headers = await self._headers()
         attempts = 1 + max(0, Config.ACCUBID_CLIENT_RETRY_COUNT)
