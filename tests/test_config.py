@@ -3,6 +3,15 @@ import pytest
 from src.config import Config
 
 
+def test_accubid_scopes_splits_space_and_comma() -> None:
+    original = Config.ACCUBID_SCOPE
+    try:
+        Config.ACCUBID_SCOPE = "anywhere-database, anywhere-project  anywhere-estimate"
+        assert Config.accubid_scopes() == ["anywhere-database", "anywhere-project", "anywhere-estimate"]
+    finally:
+        Config.ACCUBID_SCOPE = original
+
+
 def test_validate_raises_when_required_missing(monkeypatch: pytest.MonkeyPatch) -> None:
     original = (Config.CLIENT_ID, Config.CLIENT_SECRET, Config.ACCUBID_SCOPE)
     Config.CLIENT_ID = ""

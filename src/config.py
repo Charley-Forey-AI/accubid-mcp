@@ -20,7 +20,13 @@ class Config:
     ).strip()
     CLIENT_ID = os.getenv("CLIENT_ID", "").strip()
     CLIENT_SECRET = os.getenv("CLIENT_SECRET", "").strip()
-    ACCUBID_SCOPE = os.getenv("ACCUBID_SCOPE", "").strip()
+    ACCUBID_SCOPE = os.getenv("ACCUBID_SCOPE", "").strip().rstrip(",")
+
+    @classmethod
+    def accubid_scopes(cls) -> list[str]:
+        """OAuth scopes for client credentials (space- or comma-separated in ACCUBID_SCOPE)."""
+        raw = (cls.ACCUBID_SCOPE or "").replace(",", " ")
+        return [part for part in (s.strip() for s in raw.split()) if part]
 
     ACCUBID_API_BASE_URL = os.getenv(
         "ACCUBID_API_BASE_URL",
@@ -106,7 +112,7 @@ class Config:
             missing.append("CLIENT_ID")
         if not cls.CLIENT_SECRET:
             missing.append("CLIENT_SECRET")
-        if not cls.ACCUBID_SCOPE:
+        if not cls.accubid_scopes():
             missing.append("ACCUBID_SCOPE")
         if missing:
             raise ValueError(f"Missing required env vars: {', '.join(missing)}")

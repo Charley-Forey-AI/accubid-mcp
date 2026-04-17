@@ -27,7 +27,7 @@ MCP server for Accubid Anywhere APIs with Trimble Identity authentication.
 ## Setup
 
 1. Copy `.env.example` to `.env`.
-2. Set `CLIENT_ID`, `CLIENT_SECRET`, and `ACCUBID_SCOPE`.
+2. Set `CLIENT_ID`, `CLIENT_SECRET`, and `ACCUBID_SCOPE` (space-separated OAuth scopes such as `anywhere-database`, `anywhere-project`, `anywhere-estimate`, `anywhere-closeout`, `anywhere-changeorder`—see Trimble Accubid Anywhere API docs).
 3. Install dependencies:
 
 ```bash

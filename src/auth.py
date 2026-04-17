@@ -20,7 +20,7 @@ class AccubidAuth:
         endpoint_provider = OpenIdEndpointProvider(Config.OPENID_CONFIGURATION_URL)
         self._token_provider = ClientCredentialTokenProvider(
             endpoint_provider, Config.CLIENT_ID, Config.CLIENT_SECRET
-        ).with_scopes([Config.ACCUBID_SCOPE])
+        ).with_scopes(Config.accubid_scopes())
         self._access_token: Optional[str] = None
         self._expires_at: float = 0.0
         self._lock = asyncio.Lock()
