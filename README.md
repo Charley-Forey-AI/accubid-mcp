@@ -242,6 +242,18 @@ When the API circuit breaker is open, error code `circuit_open` is returned.
 - Production safety:
   - set `ENV=production` to enforce HTTPS for `ACCUBID_API_BASE_URL`.
 
+## Trimble 900909 (“subscription inactive”) troubleshooting
+
+When **`ACCUBID_AUTH_MODE=delegated`**, the MCP forwards the **Agent Studio actor JWT** to Accubid Anywhere. Trimble may respond with **401** and fault code **`900909`** (“The subscription to the API is inactive”). That check is tied to the **OAuth client** that issued the token (JWT claim **`azp`**), not to URL typos or scope strings alone.
+
+**What to do**
+
+1. In the **Trimble Developer Portal**, open the OAuth application whose ID matches **`azp`** in the actor token (tool error fields **`actor_azp`**, **`actor_sub`**, **`actor_scopes`**; server logs **`accubid_api_trimble_900909`** with the same fields).
+2. Ensure that application is **subscribed** to the **Accubid Anywhere** API products you call (e.g. Anywhere Database, Project, Estimate, Closeout, Changeorder).
+3. A different client (e.g. Postman using another `client_id`) can succeed while Agent Studio fails—same user, different **`azp`** → different product entitlement.
+
+No MCP code change fixes a missing portal subscription; the error envelope and logs only make **`azp`** obvious so you can fix the right app in the portal.
+
 ## Security notes
 
 - Never commit `.env`, `CLIENT_ID`, or `CLIENT_SECRET`.

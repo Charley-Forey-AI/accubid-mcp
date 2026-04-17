@@ -13,8 +13,49 @@ from aiohttp import ClientError, ClientSession, ClientTimeout
 from .auth import AccubidAuth
 from .config import Config
 from .errors import ApiError
-from .request_context import get_request_access_token
+from .log_config import get_logger
+from .request_context import get_request_access_token, get_request_token_claims
 from .resilience import CircuitBreaker, RateLimiter
+
+logger = get_logger()
+
+
+def _build_accubid_api_error_details(
+    *,
+    method: str,
+    endpoint_path: str,
+    url: str,
+    safe_body: str,
+    full_text_len: int,
+    status_code: int,
+) -> dict[str, Any]:
+    """Merge Trimble response with safe actor JWT fields for 900909 / subscription diagnostics."""
+    truncated = full_text_len > len(safe_body)
+    details: dict[str, Any] = {
+        "method": method,
+        "endpoint_path": endpoint_path,
+        "request_url": url,
+        "response_body": safe_body,
+        "response_body_truncated": truncated,
+        "status_code": status_code,
+    }
+    claims = get_request_token_claims()
+    if claims:
+        if claims.get("azp") is not None:
+            details["actor_azp"] = claims["azp"]
+        if claims.get("sub") is not None:
+            details["actor_sub"] = claims["sub"]
+        if claims.get("account_id") is not None:
+            details["actor_account_id"] = claims["account_id"]
+        if claims.get("scopes"):
+            details["actor_scopes"] = claims["scopes"]
+    if "900909" in safe_body:
+        azp = (claims or {}).get("azp", "unknown")
+        details["hint"] = (
+            f"Trimble 900909: app {azp} is not subscribed to the Accubid Anywhere API product. "
+            "Subscribe in Trimble Developer Portal."
+        )
+    return details
 
 
 class AccubidClient:
@@ -147,16 +188,27 @@ class AccubidClient:
                         text = await response.text()
                         await self._circuit_breaker.on_failure()
                         safe_body = text[:2048]
+                        err_details = _build_accubid_api_error_details(
+                            method=method,
+                            endpoint_path=endpoint_path,
+                            url=url,
+                            safe_body=safe_body,
+                            full_text_len=len(text),
+                            status_code=response.status,
+                        )
+                        if response.status == 401 and "900909" in safe_body:
+                            logger.warning(
+                                "accubid_api_trimble_900909 endpoint=%s request_url=%s actor_azp=%s "
+                                "actor_sub=%s",
+                                endpoint_path,
+                                url,
+                                err_details.get("actor_azp"),
+                                err_details.get("actor_sub"),
+                            )
                         raise ApiError(
                             message=f"Accubid API error {response.status} for {method} {endpoint_path}",
                             status_code=response.status,
-                            details={
-                                "method": method,
-                                "endpoint_path": endpoint_path,
-                                "request_url": url,
-                                "response_body": safe_body,
-                                "response_body_truncated": len(text) > len(safe_body),
-                            },
+                            details=err_details,
                         )
                     if response.content_type and "json" in response.content_type:
                         payload = await response.json()

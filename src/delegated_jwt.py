@@ -76,6 +76,38 @@ def _scope_claims(payload: dict[str, Any]) -> list[str]:
     return []
 
 
+def safe_claims_from_payload(payload: dict[str, Any]) -> dict[str, Any]:
+    """Non-sensitive JWT claims for diagnostics (no raw token)."""
+    out: dict[str, Any] = {}
+    for key in ("azp", "sub", "account_id", "data_region", "iss", "exp"):
+        val = payload.get(key)
+        if val is not None and val != "":
+            out[key] = val
+    scopes = _scope_claims(payload)
+    if scopes:
+        out["scopes"] = scopes
+    return out
+
+
+def safe_claims_unverified(token: str) -> dict[str, Any]:
+    """Extract safe claims when ACCUBID_DELEGATED_VERIFY=false (signature not validated)."""
+    try:
+        payload = jwt.decode(
+            token,
+            algorithms=["RS256"],
+            options={
+                "verify_signature": False,
+                "verify_exp": False,
+                "verify_aud": False,
+            },
+        )
+        if isinstance(payload, dict):
+            return safe_claims_from_payload(payload)
+    except jwt.PyJWTError:
+        logger.debug("safe_claims_unverified decode failed", exc_info=True)
+    return {}
+
+
 def _missing_required_scopes(required: list[str], payload: dict[str, Any]) -> list[str]:
     """Return required scope names not satisfied by the token.
 
@@ -95,8 +127,8 @@ def _missing_required_scopes(required: list[str], payload: dict[str, Any]) -> li
     return missing
 
 
-def verify_jwt_sync(token: str, *, jwks_uri: str) -> None:
-    """Validate signature, issuer, audience, exp; check required scopes."""
+def verify_jwt_sync(token: str, *, jwks_uri: str) -> dict[str, Any]:
+    """Validate signature, issuer, audience, exp; check required scopes. Returns safe claim dict."""
     client = _get_jwk_client(jwks_uri)
     signing_key = client.get_signing_key_from_jwt(token)
     issuer = Config.ACCUBID_DELEGATED_ISSUER.rstrip("/")
@@ -129,22 +161,24 @@ def verify_jwt_sync(token: str, *, jwks_uri: str) -> None:
                 details={"missing_scopes": missing, "has_scopes": sorted(have)},
             )
 
+    return safe_claims_from_payload(payload)
 
-async def verify_delegated_jwt(token: str) -> None:
-    """Async wrapper (JWKS fetch + CPU-bound verify in thread)."""
+
+async def verify_delegated_jwt(token: str) -> dict[str, Any]:
+    """Async wrapper (JWKS fetch + CPU-bound verify in thread). Returns safe claim dict."""
     jwks_uri = await resolve_jwks_uri()
-    await asyncio.to_thread(verify_jwt_sync, token, jwks_uri=jwks_uri)
+    return await asyncio.to_thread(verify_jwt_sync, token, jwks_uri=jwks_uri)
 
 
-async def resolve_outbound_access_token() -> str | None:
-    """Bearer string for Accubid API calls, or None to fall back to server OAuth (hybrid only)."""
+async def resolve_outbound_access_token() -> tuple[str | None, dict[str, Any] | None]:
+    """Return (bearer token, safe actor JWT claims) for Accubid API calls, or (None, None) for server OAuth."""
     mode = Config.ACCUBID_AUTH_MODE
     if mode == "server":
-        return None
+        return None, None
 
     raw = extract_bearer_raw_from_request()
     if mode == "hybrid" and not raw:
-        return None
+        return None, None
     if mode == "delegated" and not raw:
         raise AuthError(
             "ACCUBID_AUTH_MODE=delegated requires an actor token on each MCP request. "
@@ -154,8 +188,10 @@ async def resolve_outbound_access_token() -> str | None:
 
     assert raw is not None
     if Config.ACCUBID_DELEGATED_VERIFY:
-        await verify_delegated_jwt(raw)
-    return raw
+        claims = await verify_delegated_jwt(raw)
+    else:
+        claims = safe_claims_unverified(raw)
+    return raw, claims
 
 
 def extract_bearer_raw_from_request() -> str | None:

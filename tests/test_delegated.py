@@ -11,7 +11,7 @@ async def test_resolve_outbound_server_mode_returns_none(monkeypatch: pytest.Mon
     monkeypatch.setattr(Config, "ACCUBID_AUTH_MODE", "server")
     from src.delegated_jwt import resolve_outbound_access_token
 
-    assert await resolve_outbound_access_token() is None
+    assert await resolve_outbound_access_token() == (None, None)
 
 
 @pytest.mark.asyncio
@@ -32,7 +32,27 @@ async def test_resolve_outbound_hybrid_no_bearer_returns_none(monkeypatch: pytes
     import src.delegated_jwt as dj
 
     monkeypatch.setattr(dj, "extract_bearer_raw_from_request", lambda: None)
-    assert await dj.resolve_outbound_access_token() is None
+    assert await dj.resolve_outbound_access_token() == (None, None)
+
+
+def test_safe_claims_from_payload_extracts_actor_fields() -> None:
+    from src.delegated_jwt import safe_claims_from_payload
+
+    payload = {
+        "azp": "client-uuid",
+        "sub": "user-uuid",
+        "account_id": "acct-1",
+        "data_region": "us",
+        "iss": "https://id.trimble.com",
+        "exp": 9999999999,
+        "scope": "accubid_agentic_ai openid",
+    }
+    claims = safe_claims_from_payload(payload)
+    assert claims["azp"] == "client-uuid"
+    assert claims["sub"] == "user-uuid"
+    assert claims["account_id"] == "acct-1"
+    assert claims["data_region"] == "us"
+    assert claims["scopes"] == ["accubid_agentic_ai", "openid"]
 
 
 def test_missing_required_scopes_openid_implicit_via_iss_sub() -> None:
