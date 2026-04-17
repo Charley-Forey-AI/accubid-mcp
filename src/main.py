@@ -107,11 +107,19 @@ def create_app() -> AppContainer:
 
     async def _run_dependency_checks() -> dict:
         try:
-            await auth.get_access_token()
-            checks: dict[str, str] = {"trimble_identity": "ok"}
+            if Config.ACCUBID_AUTH_MODE == "delegated":
+                checks: dict[str, str] = {
+                    "trimble_identity": "delegated_actor_token_per_request",
+                }
+            else:
+                await auth.get_access_token()
+                checks = {"trimble_identity": "ok"}
             if Config.STARTUP_VALIDATE_ACCUBID:
-                await client.get_databases()
-                checks["accubid_api"] = "ok"
+                if Config.ACCUBID_AUTH_MODE == "delegated":
+                    checks["accubid_api"] = "skipped_requires_actor_token"
+                else:
+                    await client.get_databases()
+                    checks["accubid_api"] = "ok"
             return checks
         except Exception as exc:
             raise DependencyCheckError(

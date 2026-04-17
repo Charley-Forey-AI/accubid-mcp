@@ -37,6 +37,17 @@ def test_validate_rejects_insecure_prod_base_url() -> None:
         Config.validate()
 
 
+def test_validate_rejects_invalid_auth_mode() -> None:
+    original = Config.ACCUBID_AUTH_MODE
+    Config.ACCUBID_AUTH_MODE = "invalid"
+    try:
+        with pytest.raises(ValueError, match="ACCUBID_AUTH_MODE"):
+            Config.validate()
+    finally:
+        Config.ACCUBID_AUTH_MODE = original
+        Config.validate()
+
+
 def test_validate_rejects_invalid_oauth_grant() -> None:
     original = Config.ACCUBID_OAUTH_GRANT
     Config.ACCUBID_OAUTH_GRANT = "implicit"

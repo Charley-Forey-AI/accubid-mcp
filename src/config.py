@@ -38,6 +38,28 @@ class Config:
             return Path(cls.OAUTH_TOKEN_PATH).expanduser()
         return Path.home() / ".accubid-mcp" / "token.json"
 
+    # server = client_credentials / authorization_code only (default).
+    # delegated = per-request Bearer from Agent Studio / MCP (actor token); no server-stored tokens.
+    # hybrid = use actor token when present, else server OAuth (client_credentials or authorization_code).
+    ACCUBID_AUTH_MODE = os.getenv("ACCUBID_AUTH_MODE", "server").strip().lower()
+    ACCUBID_DELEGATED_VERIFY = os.getenv("ACCUBID_DELEGATED_VERIFY", "true").strip().lower() == "true"
+    ACCUBID_DELEGATED_ISSUER = os.getenv("ACCUBID_DELEGATED_ISSUER", "https://id.trimble.com").strip().rstrip("/")
+    ACCUBID_DELEGATED_JWKS_URL = os.getenv("ACCUBID_DELEGATED_JWKS_URL", "").strip()
+    ACCUBID_DELEGATED_AUDIENCE = os.getenv("ACCUBID_DELEGATED_AUDIENCE", "").strip()
+    ACCUBID_DELEGATED_REQUIRED_SCOPES = os.getenv("ACCUBID_DELEGATED_REQUIRED_SCOPES", "").strip()
+    ACCUBID_DELEGATED_JWT_LEEWAY_SECONDS = int(os.getenv("ACCUBID_DELEGATED_JWT_LEEWAY_SECONDS", "60"))
+    ACCUBID_DELEGATED_RESOURCE_SERVER_URL = os.getenv("ACCUBID_DELEGATED_RESOURCE_SERVER_URL", "").strip()
+
+    @classmethod
+    def delegated_audience_list(cls) -> list[str]:
+        raw = (cls.ACCUBID_DELEGATED_AUDIENCE or "").replace(",", " ")
+        return [p for p in (s.strip() for s in raw.split()) if p]
+
+    @classmethod
+    def delegated_required_scopes_list(cls) -> list[str]:
+        raw = (cls.ACCUBID_DELEGATED_REQUIRED_SCOPES or "").replace(",", " ")
+        return [p for p in (s.strip() for s in raw.split()) if p]
+
     @classmethod
     def accubid_scopes(cls) -> list[str]:
         """OAuth scopes for client credentials (space- or comma-separated in ACCUBID_SCOPE)."""
@@ -121,8 +143,7 @@ class Config:
     )
 
     @classmethod
-    def validate(cls) -> None:
-        """Fail fast for missing required settings."""
+    def _validate_server_oauth_credentials(cls) -> None:
         missing = []
         if not cls.CLIENT_ID:
             missing.append("CLIENT_ID")
@@ -136,6 +157,30 @@ class Config:
             raise ValueError(
                 "ACCUBID_OAUTH_GRANT must be client_credentials or authorization_code"
             )
+
+    @classmethod
+    def _validate_delegated_settings(cls) -> None:
+        if not cls.ACCUBID_DELEGATED_VERIFY:
+            return
+        if not cls.ACCUBID_DELEGATED_ISSUER:
+            raise ValueError("ACCUBID_DELEGATED_ISSUER is required when ACCUBID_DELEGATED_VERIFY=true")
+        req = cls.delegated_required_scopes_list()
+        if cls.ACCUBID_DELEGATED_REQUIRED_SCOPES and not req:
+            raise ValueError("ACCUBID_DELEGATED_REQUIRED_SCOPES is set but no valid scopes were parsed.")
+
+    @classmethod
+    def validate(cls) -> None:
+        """Fail fast for missing required settings."""
+        if cls.ACCUBID_AUTH_MODE not in ("server", "delegated", "hybrid"):
+            raise ValueError("ACCUBID_AUTH_MODE must be server, delegated, or hybrid")
+
+        if cls.ACCUBID_AUTH_MODE == "server":
+            cls._validate_server_oauth_credentials()
+        elif cls.ACCUBID_AUTH_MODE == "delegated":
+            cls._validate_delegated_settings()
+        elif cls.ACCUBID_AUTH_MODE == "hybrid":
+            cls._validate_server_oauth_credentials()
+            cls._validate_delegated_settings()
         if cls.ACCUBID_CLIENT_RETRY_BASE_SECONDS < 0:
             raise ValueError("ACCUBID_CLIENT_RETRY_BASE_SECONDS must be >= 0")
         if cls.ACCUBID_CLIENT_RETRY_MAX_SECONDS <= 0:

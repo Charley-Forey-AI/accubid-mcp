@@ -24,18 +24,31 @@ class AccubidAuth:
     """Token provider: client_credentials via trimble-id, or authorization_code via token file + refresh."""
 
     def __init__(self) -> None:
+        self._auth_mode = Config.ACCUBID_AUTH_MODE
         grant = Config.ACCUBID_OAUTH_GRANT
         self._grant = grant
         self._cc_provider: ClientCredentialTokenProvider | None = None
-        if grant == "client_credentials":
-            endpoint_provider = OpenIdEndpointProvider(Config.OPENID_CONFIGURATION_URL)
-            self._cc_provider = ClientCredentialTokenProvider(
-                endpoint_provider, Config.CLIENT_ID, Config.CLIENT_SECRET
-            ).with_scopes(Config.accubid_scopes())
-        elif grant != "authorization_code":
+
+        if self._auth_mode == "delegated":
+            # Outbound Accubid calls use per-request actor JWT (see request_context + delegated_jwt).
+            pass
+        elif self._auth_mode in ("server", "hybrid"):
+            if grant == "client_credentials":
+                endpoint_provider = OpenIdEndpointProvider(Config.OPENID_CONFIGURATION_URL)
+                self._cc_provider = ClientCredentialTokenProvider(
+                    endpoint_provider, Config.CLIENT_ID, Config.CLIENT_SECRET
+                ).with_scopes(Config.accubid_scopes())
+            elif grant == "authorization_code":
+                pass
+            else:
+                raise AuthError(
+                    "Invalid ACCUBID_OAUTH_GRANT",
+                    details={"value": grant, "allowed": ["client_credentials", "authorization_code"]},
+                )
+        else:
             raise AuthError(
-                "Invalid ACCUBID_OAUTH_GRANT",
-                details={"value": grant, "allowed": ["client_credentials", "authorization_code"]},
+                "Invalid ACCUBID_AUTH_MODE",
+                details={"value": self._auth_mode, "allowed": ["server", "delegated", "hybrid"]},
             )
 
         self._access_token: Optional[str] = None
@@ -154,6 +167,13 @@ class AccubidAuth:
 
     async def get_access_token(self) -> str:
         """Return a valid access token."""
+        if self._auth_mode == "delegated":
+            raise AuthError(
+                "ACCUBID_AUTH_MODE=delegated uses the actor token from each MCP request only. "
+                "It was not available when resolving the Accubid API Authorization header.",
+                details={"hint": "Use Agent Studio streamable HTTP with On behalf of actor token."},
+            )
+
         if self._grant == "client_credentials":
             if self._is_token_valid():
                 return self._access_token or ""

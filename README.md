@@ -4,7 +4,7 @@ MCP server for Accubid Anywhere APIs with Trimble Identity authentication.
 
 ## Features
 
-- Trimble Identity auth: **client credentials** (default) or **authorization code + PKCE** (user tokens + refresh; `accubid-mcp-oauth-login`)
+- Trimble Identity auth: **server** (`client_credentials` / `authorization_code`), **delegated** (Trimble Agent Studio actor JWT per MCP request, like Vista MCP), or **hybrid** (actor token first, else server OAuth)
 - Domain tools for:
   - database
   - project
@@ -27,17 +27,16 @@ MCP server for Accubid Anywhere APIs with Trimble Identity authentication.
 ## Setup
 
 1. Copy `.env.example` to `.env`.
-2. Set `CLIENT_ID`, `CLIENT_SECRET`, and `ACCUBID_SCOPE` (space-separated OAuth scopes such as `anywhere-database`, `anywhere-project`, `anywhere-estimate`, `anywhere-closeout`, `anywhere-changeorder`—see Trimble Accubid Anywhere API docs).
-3. Choose how the server obtains API tokens:
-   - **`ACCUBID_OAUTH_GRANT=client_credentials`** (default): machine token via app id/secret (same as before).
-   - **`ACCUBID_OAUTH_GRANT=authorization_code`**: user-based access. Register **`OAUTH_REDIRECT_URI`** (default `http://127.0.0.1:8765/oauth/callback`) on your Trimble OAuth app, run `accubid-mcp-oauth-login` once in a browser to sign in; tokens are stored under **`OAUTH_TOKEN_PATH`** (default `%USERPROFILE%\.accubid-mcp\token.json` on Windows, `~/.accubid-mcp/token.json` elsewhere). Copy that file to any headless server that runs the MCP. Add **`openid`** to `ACCUBID_SCOPE` if your Trimble app requires it for interactive login.
-4. Install dependencies:
+2. Set **`ACCUBID_AUTH_MODE`** (`server`, `delegated`, or `hybrid`) and the variables below that match your deployment.
+3. **Server OAuth** (`ACCUBID_AUTH_MODE=server` or for fallback in `hybrid`): set `CLIENT_ID`, `CLIENT_SECRET`, and `ACCUBID_SCOPE` (e.g. `anywhere-database` … `anywhere-changeorder`). Set **`ACCUBID_OAUTH_GRANT`** to **`client_credentials`** or **`authorization_code`** (user token file + `accubid-mcp-oauth-login`; see `.env.example`).
+4. **Delegated / Agent Studio** (`ACCUBID_AUTH_MODE=delegated` or `hybrid`): use **streamable HTTP** from Studio so each request carries the **On behalf of actor** JWT. Configure **`ACCUBID_DELEGATED_ISSUER`**, optional **`ACCUBID_DELEGATED_JWKS_URL`**, **`ACCUBID_DELEGATED_AUDIENCE`**, and **`ACCUBID_DELEGATED_REQUIRED_SCOPES`** (e.g. `accubid_agentic_ai openid`). Pure **`delegated`** does not require `CLIENT_ID` for Accubid API calls.
+5. Install dependencies:
 
 ```bash
 pip install -e .
 ```
 
-If you set `ACCUBID_OAUTH_GRANT=authorization_code`, run `accubid-mcp-oauth-login` once (browser) after saving `.env`.
+If you use **`authorization_code`** on the server, run `accubid-mcp-oauth-login` once (browser) after saving `.env`.
 
 For local development (tests, lint, typing):
 

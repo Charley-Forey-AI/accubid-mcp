@@ -5,3 +5,4 @@ import os
 os.environ.setdefault("CLIENT_ID", "test-client-id")
 os.environ.setdefault("CLIENT_SECRET", "test-client-secret")
 os.environ.setdefault("ACCUBID_SCOPE", "test-scope")
+os.environ.setdefault("ACCUBID_AUTH_MODE", "server")

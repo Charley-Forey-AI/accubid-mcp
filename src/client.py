@@ -13,6 +13,7 @@ from aiohttp import ClientError, ClientSession, ClientTimeout
 from .auth import AccubidAuth
 from .config import Config
 from .errors import ApiError
+from .request_context import get_request_access_token
 from .resilience import CircuitBreaker, RateLimiter
 
 
@@ -102,7 +103,11 @@ class AccubidClient:
         self._persist_cache()
 
     async def _headers(self) -> Dict[str, str]:
-        token = await self.auth.get_access_token()
+        delegated = get_request_access_token()
+        if delegated:
+            token = delegated
+        else:
+            token = await self.auth.get_access_token()
         return {
             "Authorization": f"Bearer {token}",
             "Accept": "application/json",
