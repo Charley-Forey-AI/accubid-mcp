@@ -73,12 +73,8 @@ class Config:
     # Per-area API versions under ACCUBID_API_BASE_URL/{area}/{version}/...
     # See https://developer.trimble.com/ — modules ship on different version paths.
     ACCUBID_API_VERSION_DATABASE = os.getenv("ACCUBID_API_VERSION_DATABASE", "v1").strip()
-    ACCUBID_API_VERSION_ESTIMATE = os.getenv("ACCUBID_API_VERSION_ESTIMATE", "v2").strip()
+    ACCUBID_API_VERSION_ESTIMATE = os.getenv("ACCUBID_API_VERSION_ESTIMATE", "v1").strip()
     ACCUBID_API_VERSION_PROJECT = os.getenv("ACCUBID_API_VERSION_PROJECT", "v2").strip()
-    # Folder APIs historically live on project v1 while other project routes may be v2.
-    ACCUBID_API_VERSION_PROJECT_FOLDERS = os.getenv(
-        "ACCUBID_API_VERSION_PROJECT_FOLDERS", "v1"
-    ).strip()
     ACCUBID_API_VERSION_CHANGEORDER = os.getenv("ACCUBID_API_VERSION_CHANGEORDER", "v1").strip()
     ACCUBID_API_VERSION_CLOSEOUT = os.getenv("ACCUBID_API_VERSION_CLOSEOUT", "v1").strip()
     # Fallback for unknown area keys (should not occur for built-in tools).
@@ -155,20 +151,18 @@ class Config:
     )
 
     @classmethod
-    def accubid_api_version_for_request(cls, area: str, endpoint_path: str) -> str:
+    def accubid_api_version_for_request(cls, area: str, _endpoint_path: str) -> str:
         """Return the API version segment (e.g. v1, v2) for a given area and path."""
-        ep = endpoint_path or ""
-        if area == "project":
-            if ep.startswith("/Folder") or ep.startswith("/Folders"):
-                return cls.ACCUBID_API_VERSION_PROJECT_FOLDERS or "v1"
-            return cls.ACCUBID_API_VERSION_PROJECT or "v2"
         mapping = {
             "database": cls.ACCUBID_API_VERSION_DATABASE,
             "estimate": cls.ACCUBID_API_VERSION_ESTIMATE,
+            "project": cls.ACCUBID_API_VERSION_PROJECT,
             "changeorder": cls.ACCUBID_API_VERSION_CHANGEORDER,
             "closeout": cls.ACCUBID_API_VERSION_CLOSEOUT,
         }
         ver = mapping.get(area, cls.ACCUBID_API_VERSION)
+        if area == "project":
+            return ver or "v2"
         return ver or "v1"
 
     @classmethod

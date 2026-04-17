@@ -153,6 +153,7 @@ class AccubidClient:
                             details={
                                 "method": method,
                                 "endpoint_path": endpoint_path,
+                                "request_url": url,
                                 "response_body": safe_body,
                                 "response_body_truncated": len(text) > len(safe_body),
                             },
@@ -194,11 +195,11 @@ class AccubidClient:
 
     # database
     async def get_databases(self) -> Any:
-        cache_key = "database:/Databases"
+        cache_key = "database:/databases"
         cached = self._cache_get(cache_key)
         if cached is not None:
             return cached
-        payload = await self.get("database", "/Databases")
+        payload = await self.get("database", "/databases")
         self._cache_set(cache_key, payload)
         return payload
 

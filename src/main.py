@@ -139,7 +139,6 @@ def create_app() -> AppContainer:
                 "database": Config.ACCUBID_API_VERSION_DATABASE,
                 "estimate": Config.ACCUBID_API_VERSION_ESTIMATE,
                 "project": Config.ACCUBID_API_VERSION_PROJECT,
-                "project_folders": Config.ACCUBID_API_VERSION_PROJECT_FOLDERS,
                 "changeorder": Config.ACCUBID_API_VERSION_CHANGEORDER,
                 "closeout": Config.ACCUBID_API_VERSION_CLOSEOUT,
             },
