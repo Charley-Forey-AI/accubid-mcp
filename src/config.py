@@ -1,6 +1,7 @@
 """Environment-backed configuration for accubid MCP."""
 
 import os
+from pathlib import Path
 
 from dotenv import load_dotenv
 
@@ -21,6 +22,21 @@ class Config:
     CLIENT_ID = os.getenv("CLIENT_ID", "").strip()
     CLIENT_SECRET = os.getenv("CLIENT_SECRET", "").strip()
     ACCUBID_SCOPE = os.getenv("ACCUBID_SCOPE", "").strip().rstrip(",")
+
+    # client_credentials (default) or authorization_code (user login + token file; see README).
+    ACCUBID_OAUTH_GRANT = os.getenv("ACCUBID_OAUTH_GRANT", "client_credentials").strip().lower()
+    OAUTH_REDIRECT_URI = os.getenv(
+        "OAUTH_REDIRECT_URI",
+        "http://127.0.0.1:8765/oauth/callback",
+    ).strip()
+    OAUTH_TOKEN_PATH = os.getenv("OAUTH_TOKEN_PATH", "").strip()
+
+    @classmethod
+    def oauth_token_path_resolved(cls) -> Path:
+        """Where user tokens are stored for ACCUBID_OAUTH_GRANT=authorization_code."""
+        if cls.OAUTH_TOKEN_PATH:
+            return Path(cls.OAUTH_TOKEN_PATH).expanduser()
+        return Path.home() / ".accubid-mcp" / "token.json"
 
     @classmethod
     def accubid_scopes(cls) -> list[str]:
@@ -116,6 +132,10 @@ class Config:
             missing.append("ACCUBID_SCOPE")
         if missing:
             raise ValueError(f"Missing required env vars: {', '.join(missing)}")
+        if cls.ACCUBID_OAUTH_GRANT not in ("client_credentials", "authorization_code"):
+            raise ValueError(
+                "ACCUBID_OAUTH_GRANT must be client_credentials or authorization_code"
+            )
         if cls.ACCUBID_CLIENT_RETRY_BASE_SECONDS < 0:
             raise ValueError("ACCUBID_CLIENT_RETRY_BASE_SECONDS must be >= 0")
         if cls.ACCUBID_CLIENT_RETRY_MAX_SECONDS <= 0:

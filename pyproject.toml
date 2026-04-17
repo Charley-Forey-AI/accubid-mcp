@@ -14,6 +14,7 @@ dependencies = [
 [project.scripts]
 accubid-mcp = "src.main:run"
 accubid-mcp-http = "src.main:run_http"
+accubid-mcp-oauth-login = "src.oauth_login:main"
 
 [project.optional-dependencies]
 dev = [

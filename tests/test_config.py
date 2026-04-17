@@ -37,6 +37,17 @@ def test_validate_rejects_insecure_prod_base_url() -> None:
         Config.validate()
 
 
+def test_validate_rejects_invalid_oauth_grant() -> None:
+    original = Config.ACCUBID_OAUTH_GRANT
+    Config.ACCUBID_OAUTH_GRANT = "implicit"
+    try:
+        with pytest.raises(ValueError, match="ACCUBID_OAUTH_GRANT"):
+            Config.validate()
+    finally:
+        Config.ACCUBID_OAUTH_GRANT = original
+        Config.validate()
+
+
 def test_validate_rejects_bad_circuit_breaker() -> None:
     original = Config.ACCUBID_CIRCUIT_BREAKER_FAILURES
     Config.ACCUBID_CIRCUIT_BREAKER_FAILURES = 0

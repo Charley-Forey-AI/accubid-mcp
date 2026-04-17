@@ -4,7 +4,7 @@ MCP server for Accubid Anywhere APIs with Trimble Identity authentication.
 
 ## Features
 
-- Client-credentials auth via `trimble-id`
+- Trimble Identity auth: **client credentials** (default) or **authorization code + PKCE** (user tokens + refresh; `accubid-mcp-oauth-login`)
 - Domain tools for:
   - database
   - project
@@ -28,11 +28,16 @@ MCP server for Accubid Anywhere APIs with Trimble Identity authentication.
 
 1. Copy `.env.example` to `.env`.
 2. Set `CLIENT_ID`, `CLIENT_SECRET`, and `ACCUBID_SCOPE` (space-separated OAuth scopes such as `anywhere-database`, `anywhere-project`, `anywhere-estimate`, `anywhere-closeout`, `anywhere-changeorder`—see Trimble Accubid Anywhere API docs).
-3. Install dependencies:
+3. Choose how the server obtains API tokens:
+   - **`ACCUBID_OAUTH_GRANT=client_credentials`** (default): machine token via app id/secret (same as before).
+   - **`ACCUBID_OAUTH_GRANT=authorization_code`**: user-based access. Register **`OAUTH_REDIRECT_URI`** (default `http://127.0.0.1:8765/oauth/callback`) on your Trimble OAuth app, run `accubid-mcp-oauth-login` once in a browser to sign in; tokens are stored under **`OAUTH_TOKEN_PATH`** (default `%USERPROFILE%\.accubid-mcp\token.json` on Windows, `~/.accubid-mcp/token.json` elsewhere). Copy that file to any headless server that runs the MCP. Add **`openid`** to `ACCUBID_SCOPE` if your Trimble app requires it for interactive login.
+4. Install dependencies:
 
 ```bash
 pip install -e .
 ```
+
+If you set `ACCUBID_OAUTH_GRANT=authorization_code`, run `accubid-mcp-oauth-login` once (browser) after saving `.env`.
 
 For local development (tests, lint, typing):
 
