@@ -7,7 +7,22 @@ from dotenv import load_dotenv
 
 from .log_config import get_logger, setup_logging
 
-load_dotenv()
+# Resolve repo `.env` regardless of process cwd (systemd WorkingDirectory quirks).
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
+
+def env_truthy(name: str, *, default: bool = False) -> bool:
+    """Parse booleans from env; accepts 1/true/yes/on and strips simple quotes."""
+    raw = os.getenv(name)
+    if raw is None:
+        return default
+    v = raw.strip()
+    if len(v) >= 2 and v[0] == v[-1] and v[0] in "\"'":
+        v = v[1:-1].strip()
+    return v.lower() in ("1", "true", "yes", "on")
+
+
+load_dotenv(_PROJECT_ROOT / ".env")
 setup_logging()
 logger = get_logger()
 
@@ -131,10 +146,6 @@ class Config:
     ACCUBID_RESPONSE_SNAKE_CASE = (
         os.getenv("ACCUBID_RESPONSE_SNAKE_CASE", "false").strip().lower() == "true"
     )
-    # Logs the full bearer on every Accubid HTTP call (journald). For Postman debugging only; disable after use.
-    ACCUBID_DEBUG_LOG_OUTBOUND_TOKEN = (
-        os.getenv("ACCUBID_DEBUG_LOG_OUTBOUND_TOKEN", "false").strip().lower() == "true"
-    )
     ENV = os.getenv("ENV", "development").strip().lower()
     APP_VERSION = os.getenv("APP_VERSION", "").strip()
     MCP_CORS_ORIGINS = os.getenv("MCP_CORS_ORIGINS", "").strip()
@@ -153,6 +164,11 @@ class Config:
     ACCUBID_TOOLS_DISABLE_CHANGEORDER = (
         os.getenv("ACCUBID_TOOLS_DISABLE_CHANGEORDER", "false").strip().lower() == "true"
     )
+
+    @classmethod
+    def debug_log_outbound_token(cls) -> bool:
+        """Logs full bearer on each Accubid HTTP call when true; reads env each time."""
+        return env_truthy("ACCUBID_DEBUG_LOG_OUTBOUND_TOKEN")
 
     @classmethod
     def accubid_api_version_for_request(cls, area: str, _endpoint_path: str) -> str:

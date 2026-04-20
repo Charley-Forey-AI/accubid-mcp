@@ -211,8 +211,8 @@ class AccubidClient:
             token = delegated
         else:
             token = await self.auth.get_access_token()
-        if Config.ACCUBID_DEBUG_LOG_OUTBOUND_TOKEN:
-            logger.warning(
+        if Config.debug_log_outbound_token():
+            logger.info(
                 "ACCUBID_DEBUG_LOG_OUTBOUND_TOKEN: bearer for next Accubid request "
                 "(Postman: paste as Bearer; turn off env when finished): %s",
                 token,

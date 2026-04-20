@@ -226,6 +226,11 @@ def run_http() -> None:
     signal.signal(signal.SIGTERM, lambda *_args: _close_client_sync())
     signal.signal(signal.SIGINT, lambda *_args: _close_client_sync())
     logger.info("Starting HTTP server on %s:%s%s", kwargs["host"], kwargs["port"], kwargs["path"])
+    if Config.debug_log_outbound_token():
+        logger.warning(
+            "ACCUBID_DEBUG_LOG_OUTBOUND_TOKEN is enabled: full OAuth bearer will be logged "
+            "(INFO) on each Accubid HTTP request; disable after debugging."
+        )
     http_app = app.mcp.http_app(path=kwargs["path"], transport="streamable-http")
     if Config.MCP_CORS_ORIGINS:
         from starlette.middleware.cors import CORSMiddleware
