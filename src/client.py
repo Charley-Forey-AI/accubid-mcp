@@ -104,12 +104,23 @@ def _build_accubid_api_error_details(
         actor_azp = (actor_payload or {}).get("azp", "unknown")
         shape = details.get("outbound_token_shape")
         if outbound_azp:
+            scope_hint = ""
+            out_sc = str(details.get("outbound_scope_claim") or "")
+            if (
+                endpoint_path.startswith("/databases")
+                and "anywhere-database" not in out_sc.replace(" ", "").lower()
+            ):
+                scope_hint = (
+                    " Token-exchange scope for REST Database API usually must include **anywhere-database** "
+                    "(copy your working Postman `scope=` query into ACCUBID_SCOPE). "
+                )
             details["hint"] = (
-                "Trimble 900909: Accubid evaluated the outbound access token "
-                f"(JWT azp={outbound_azp}). Subscribe that OAuth application to Accubid Anywhere "
-                "in Trimble Developer Portal. "
-                f"actor_azp={actor_azp} is the inbound Agent Studio token only "
-                "(not what the gateway uses if token exchange ran)."
+                "Trimble 900909: Accubid rejected the outbound access token "
+                f"(JWT azp={outbound_azp})."
+                + scope_hint
+                + " Confirm that OAuth app is subscribed to Accubid Anywhere **API products** you call "
+                "(Database vs agentic-only scopes differ). "
+                f"actor_azp={actor_azp} is the inbound Agent Studio token only."
             )
         elif shape == "opaque_or_malformed":
             details["hint"] = (

@@ -263,9 +263,11 @@ Accubid Anywhere ties **401** / fault **`900909`** to the **OAuth client** on th
 **Checklist**
 
 1. **`client_id` parity** — Postman’s `client_id` must equal **`CLIENT_ID`** in `.env`.
-2. **Scopes** — **`ACCUBID_SCOPE`** in token exchange must cover the APIs you call; align with Postman’s authorize **`scope=`** (e.g. `openid accubid_agentic_ai` and any additional Trimble-required API scopes).
-3. **Developer Console** — For **`CLIENT_ID`**: Accubid Anywhere subscribed, **token exchange (On-Behalf-Of)** enabled.
-4. **Still failing?** — If authorization-code tokens work but exchanged tokens do not, contact **Trimble support** with outbound JWT **`azp`** / **`scope`** from tool error details (and **`actor_azp`** from the inbound actor JWT for correlation).
+2. **Scopes (most common fix)** — Token exchange sends **`ACCUBID_SCOPE`** to Trimble. If **`outbound_scope_claim`** in errors is only `accubid_agentic_ai` but Postman’s token works, your Postman **authorize URL** almost certainly includes extra scopes (e.g. **`anywhere-database`**, **`anywhere-project`**, …). Copy the **`scope=`** query value from Postman into **`ACCUBID_SCOPE`** (space-separated, same as Postman). REST endpoints such as `GET .../database/v1/databases` typically require **`anywhere-database`** in the access token, not only `accubid_agentic_ai`.
+3. **Developer Console** — For **`CLIENT_ID`**: enable the same **Accubid Anywhere API products** / scopes as in Postman, and **token exchange (On-Behalf-Of)**. Restart the MCP after changing **`ACCUBID_SCOPE`** (cache keys include scope).
+4. **Still failing?** — Contact **Trimble support** with outbound JWT **`azp`** / **`scope`** from tool error details.
+
+**If `outbound_azp` already equals your `CLIENT_ID`** (token exchange succeeded) but you still get 900909, this is **not** an MCP wiring bug — it is scope or product subscription for that client vs. the API route.
 
 The MCP **exchanges** the Agent Studio actor token using **`CLIENT_ID`** / **`CLIENT_SECRET`**. Accubid should see **`azp`** = your MCP app after exchange. Tool errors include **`actor_azp`** / **`actor_sub`** (unverified decode of the inbound JWT) for diagnostics.
 
