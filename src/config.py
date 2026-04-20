@@ -131,6 +131,10 @@ class Config:
     ACCUBID_RESPONSE_SNAKE_CASE = (
         os.getenv("ACCUBID_RESPONSE_SNAKE_CASE", "false").strip().lower() == "true"
     )
+    # Logs the full bearer on every Accubid HTTP call (journald). For Postman debugging only; disable after use.
+    ACCUBID_DEBUG_LOG_OUTBOUND_TOKEN = (
+        os.getenv("ACCUBID_DEBUG_LOG_OUTBOUND_TOKEN", "false").strip().lower() == "true"
+    )
     ENV = os.getenv("ENV", "development").strip().lower()
     APP_VERSION = os.getenv("APP_VERSION", "").strip()
     MCP_CORS_ORIGINS = os.getenv("MCP_CORS_ORIGINS", "").strip()
