@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import base64
 import json
 import time
 from pathlib import Path
@@ -18,6 +19,45 @@ from .request_context import get_request_access_token, get_request_token_claims
 from .resilience import CircuitBreaker, RateLimiter
 
 logger = get_logger()
+
+
+def _unverified_jwt_payload_dict(token: str | None) -> dict[str, Any] | None:
+    """Middle segment of a JWT decoded as JSON (no signature verification)."""
+    if not token or not isinstance(token, str):
+        return None
+    parts = token.strip().split(".")
+    if len(parts) != 3:
+        return None
+    try:
+        seg = parts[1].strip()
+        pad = 4 - (len(seg) % 4)
+        if pad != 4:
+            seg += "=" * pad
+        raw = base64.urlsafe_b64decode(seg)
+        data = json.loads(raw.decode("utf-8"))
+        return data if isinstance(data, dict) else None
+    except (json.JSONDecodeError, ValueError, UnicodeDecodeError):
+        return None
+
+
+def _outbound_token_diagnostics() -> dict[str, Any]:
+    """Fields from the bearer sent to Accubid (request ContextVar), not the inbound actor JWT."""
+    raw = get_request_access_token()
+    if not raw:
+        return {}
+    payload = _unverified_jwt_payload_dict(raw)
+    if payload is None:
+        return {"outbound_token_shape": "opaque_or_malformed"}
+    out: dict[str, Any] = {"outbound_token_shape": "jwt"}
+    if payload.get("azp") is not None:
+        out["outbound_azp"] = payload["azp"]
+    aud = payload.get("aud")
+    if aud is not None:
+        out["outbound_aud"] = aud
+    sc = payload.get("scope")
+    if sc is not None:
+        out["outbound_scope_claim"] = sc
+    return out
 
 
 def _build_accubid_api_error_details(
@@ -49,12 +89,34 @@ def _build_accubid_api_error_details(
             details["actor_account_id"] = claims["account_id"]
         if claims.get("scopes"):
             details["actor_scopes"] = claims["scopes"]
+
+    details.update(_outbound_token_diagnostics())
+
     if "900909" in safe_body:
-        azp = (claims or {}).get("azp", "unknown")
-        details["hint"] = (
-            f"Trimble 900909: app {azp} is not subscribed to the Accubid Anywhere API product. "
-            "Subscribe in Trimble Developer Portal."
-        )
+        outbound_azp = details.get("outbound_azp")
+        actor_azp = (claims or {}).get("azp", "unknown")
+        shape = details.get("outbound_token_shape")
+        if outbound_azp:
+            details["hint"] = (
+                "Trimble 900909: Accubid evaluated the outbound access token "
+                f"(JWT azp={outbound_azp}). Subscribe that OAuth application to Accubid Anywhere "
+                "in Trimble Developer Portal. "
+                f"actor_azp={actor_azp} is the inbound Agent Studio token only "
+                "(not what the gateway uses if token exchange ran)."
+            )
+        elif shape == "opaque_or_malformed":
+            details["hint"] = (
+                "Trimble 900909: outbound bearer was not a decodable JWT. "
+                "With ACCUBID_AUTH_MODE=delegated, confirm token exchange at id.trimble.com "
+                "returns a JWT access_token. "
+                f"actor_azp={actor_azp} is inbound Studio only."
+            )
+        else:
+            details["hint"] = (
+                f"Trimble 900909: subscription inactive for the token Accubid received. "
+                f"actor_azp={actor_azp} is the inbound Actor Studio JWT (diagnostic only). "
+                "If using token exchange, ensure CLIENT_ID is subscribed and OBO scope includes accubid_agentic_ai."
+            )
     return details
 
 
@@ -198,12 +260,14 @@ class AccubidClient:
                         )
                         if response.status == 401 and "900909" in safe_body:
                             logger.warning(
-                                "accubid_api_trimble_900909 endpoint=%s request_url=%s actor_azp=%s "
-                                "actor_sub=%s",
+                                "accubid_api_trimble_900909 endpoint=%s request_url=%s "
+                                "outbound_azp=%s actor_azp=%s actor_sub=%s outbound_token_shape=%s",
                                 endpoint_path,
                                 url,
+                                err_details.get("outbound_azp"),
                                 err_details.get("actor_azp"),
                                 err_details.get("actor_sub"),
+                                err_details.get("outbound_token_shape"),
                             )
                         raise ApiError(
                             message=f"Accubid API error {response.status} for {method} {endpoint_path}",
