@@ -55,6 +55,14 @@ def _cache_key(actor_token: str, scope_str: str) -> str:
     h.update(actor_token.encode("utf-8"))
     h.update(b"\n")
     h.update(scope_str.encode("utf-8"))
+    r = Config.token_exchange_resource()
+    if r:
+        h.update(b"\nres:")
+        h.update(r.encode("utf-8"))
+    a = Config.token_exchange_audience()
+    if a:
+        h.update(b"\naud:")
+        h.update(a.encode("utf-8"))
     return h.hexdigest()
 
 
@@ -112,6 +120,12 @@ class AccubidAuth:
             "subject_token_type": subject_token_type,
             "scope": scope_str,
         }
+        resource = Config.token_exchange_resource()
+        if resource:
+            form["resource"] = resource
+        audience = Config.token_exchange_audience()
+        if audience:
+            form["audience"] = audience
         body = urlencode(form)
         async with session.post(token_endpoint, data=body, headers=headers) as response:
             return response.status, await response.text()

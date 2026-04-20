@@ -198,8 +198,18 @@ def _mcp_http_kwargs() -> dict:
 
 
 def _close_client_sync() -> None:
-    with contextlib.suppress(Exception):
-        asyncio.run(app.client.close())
+    """Close aiohttp session; must not call asyncio.run() from uvicorn's running loop (SIGTERM)."""
+    import threading
+
+    def _run() -> None:
+        try:
+            asyncio.run(app.client.close())
+        except Exception:
+            logger.debug("AccubidClient.close failed during shutdown", exc_info=True)
+
+    t = threading.Thread(target=_run, name="accubid-mcp-close", daemon=True)
+    t.start()
+    t.join(timeout=8.0)
 
 
 def run() -> None:
@@ -263,7 +273,4 @@ if __name__ == "__main__":
     try:
         main()
     finally:
-        try:
-            asyncio.run(app.client.close())
-        except RuntimeError:
-            pass
+        _close_client_sync()

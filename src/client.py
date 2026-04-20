@@ -106,20 +106,32 @@ def _build_accubid_api_error_details(
         if outbound_azp:
             scope_hint = ""
             out_sc = str(details.get("outbound_scope_claim") or "")
-            if (
-                endpoint_path.startswith("/databases")
-                and "anywhere-database" not in out_sc.replace(" ", "").lower()
-            ):
+            out_sc_norm = out_sc.replace(" ", "").lower()
+            if endpoint_path.startswith("/databases") and "anywhere-database" not in out_sc_norm:
                 scope_hint = (
                     " Token-exchange scope for REST Database API usually must include **anywhere-database** "
                     "(copy your working Postman `scope=` query into ACCUBID_SCOPE). "
+                )
+            escal = ""
+            if "anywhere-database" in out_sc_norm:
+                aud = details.get("outbound_aud")
+                escal = (
+                    " Your outbound token already includes **anywhere-database** — the MCP exchange is "
+                    "behaving. 900909 here usually means Trimble’s gateway does not treat **token-exchange** "
+                    "tokens the same as **authorization-code** tokens for API subscription, or the access "
+                    "token needs a specific **audience/resource** at exchange time. "
+                    "Try `.env`: ACCUBID_TOKEN_EXCHANGE_RESOURCE=" + Config.ACCUBID_API_BASE_URL
+                    + " and/or ACCUBID_TOKEN_EXCHANGE_AUDIENCE set to the Accubid API audience GUID from "
+                    f"`outbound_aud` ({aud}). "
+                    "If Postman still works with the same client_id, escalate to **Trimble support** with "
+                    "grant_type=token-exchange vs authorization_code and decoded JWT claims for both tokens."
                 )
             details["hint"] = (
                 "Trimble 900909: Accubid rejected the outbound access token "
                 f"(JWT azp={outbound_azp})."
                 + scope_hint
-                + " Confirm that OAuth app is subscribed to Accubid Anywhere **API products** you call "
-                "(Database vs agentic-only scopes differ). "
+                + escal
+                + " Confirm OAuth app subscription to Accubid Anywhere products in Developer Console. "
                 f"actor_azp={actor_azp} is the inbound Agent Studio token only."
             )
         elif shape == "opaque_or_malformed":

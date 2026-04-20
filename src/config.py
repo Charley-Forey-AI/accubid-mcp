@@ -118,6 +118,18 @@ class Config:
         return env_truthy("ACCUBID_DEBUG_LOG_OUTBOUND_TOKEN")
 
     @classmethod
+    def token_exchange_resource(cls) -> str | None:
+        """Optional RFC 8707 `resource` URI sent to Trimble token exchange (unset when empty)."""
+        r = os.getenv("ACCUBID_TOKEN_EXCHANGE_RESOURCE", "").strip()
+        return r or None
+
+    @classmethod
+    def token_exchange_audience(cls) -> str | None:
+        """Optional `audience` sent to Trimble token exchange (some IdPs require API audience GUID)."""
+        a = os.getenv("ACCUBID_TOKEN_EXCHANGE_AUDIENCE", "").strip()
+        return a or None
+
+    @classmethod
     def scope_string(cls) -> str:
         """Space-separated OAuth scope string for token exchange."""
         return " ".join(cls.accubid_scopes())
