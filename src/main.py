@@ -1,12 +1,12 @@
 """Main entry point for Accubid MCP server."""
 
 import asyncio
-import atexit
 import contextlib
 import importlib.metadata
 import os
-import signal
 import sys
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from typing import Any, Callable, Coroutine
 
@@ -69,9 +69,16 @@ class AppContainer:
 
 def create_app() -> AppContainer:
     """Create a fully wired MCP app container."""
-    mcp = FastMCP("accubid-mcp")
     auth = AccubidAuth()
     client = AccubidClient(auth)
+
+    @asynccontextmanager
+    async def accubid_lifespan(_server: FastMCP) -> AsyncIterator[dict[str, Any]]:
+        """Close aiohttp session on HTTP server shutdown (uvicorn ASGI lifespan)."""
+        yield {}
+        await client.close()
+
+    mcp = FastMCP("accubid-mcp", lifespan=accubid_lifespan)
     register_tools(mcp, client)
     register_resources(mcp, client)
     register_prompts(mcp)
@@ -198,18 +205,11 @@ def _mcp_http_kwargs() -> dict:
 
 
 def _close_client_sync() -> None:
-    """Close aiohttp session; must not call asyncio.run() from uvicorn's running loop (SIGTERM)."""
-    import threading
-
-    def _run() -> None:
-        try:
-            asyncio.run(app.client.close())
-        except Exception:
-            logger.debug("AccubidClient.close failed during shutdown", exc_info=True)
-
-    t = threading.Thread(target=_run, name="accubid-mcp-close", daemon=True)
-    t.start()
-    t.join(timeout=8.0)
+    """Best-effort close for STDIO mode (no ASGI lifespan). HTTP mode closes in `accubid_lifespan`."""
+    try:
+        asyncio.run(app.client.close())
+    except Exception:
+        logger.debug("AccubidClient.close failed during shutdown", exc_info=True)
 
 
 def run() -> None:
@@ -224,15 +224,26 @@ def run() -> None:
 def run_http() -> None:
     """Run in streamable HTTP mode."""
     kwargs = _mcp_http_kwargs()
-    atexit.register(_close_client_sync)
-    signal.signal(signal.SIGTERM, lambda *_args: _close_client_sync())
-    signal.signal(signal.SIGINT, lambda *_args: _close_client_sync())
     logger.info("Starting HTTP server on %s:%s%s", kwargs["host"], kwargs["port"], kwargs["path"])
     logger.info(
         "On-behalf-of token exchange uses CLIENT_ID=%s — confirm it matches the OAuth app in "
         "Trimble Developer Console (token exchange enabled, Accubid subscribed).",
         Config.CLIENT_ID or "(unset)",
     )
+    r = Config.token_exchange_resource()
+    a = Config.token_exchange_audience()
+    if r or a:
+        logger.info(
+            "Token exchange optional params: resource=%s audience=%s",
+            r or "(unset)",
+            a or "(unset)",
+        )
+    else:
+        logger.info(
+            "Token exchange optional params: ACCUBID_TOKEN_EXCHANGE_RESOURCE / "
+            "ACCUBID_TOKEN_EXCHANGE_AUDIENCE not set — if you get 900909 with scopes correct, "
+            "try setting them (see README)."
+        )
     if Config.debug_log_outbound_token():
         logger.warning(
             "ACCUBID_DEBUG_LOG_OUTBOUND_TOKEN is enabled: full OAuth bearer will be logged "
