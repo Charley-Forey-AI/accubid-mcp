@@ -37,6 +37,31 @@ def test_validate_rejects_insecure_prod_base_url() -> None:
         Config.validate()
 
 
+def test_validate_delegated_requires_client_for_token_exchange(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Delegated mode must have CLIENT_ID/SECRET/ACCUBID_SCOPE for Trimble OBO exchange."""
+    original = (
+        Config.ACCUBID_AUTH_MODE,
+        Config.CLIENT_ID,
+        Config.CLIENT_SECRET,
+        Config.ACCUBID_SCOPE,
+    )
+    Config.ACCUBID_AUTH_MODE = "delegated"
+    Config.CLIENT_ID = ""
+    Config.CLIENT_SECRET = ""
+    Config.ACCUBID_SCOPE = "openid accubid_agentic_ai"
+    try:
+        with pytest.raises(ValueError, match="token exchange"):
+            Config.validate()
+    finally:
+        (
+            Config.ACCUBID_AUTH_MODE,
+            Config.CLIENT_ID,
+            Config.CLIENT_SECRET,
+            Config.ACCUBID_SCOPE,
+        ) = original
+        Config.validate()
+
+
 def test_validate_rejects_invalid_auth_mode() -> None:
     original = Config.ACCUBID_AUTH_MODE
     Config.ACCUBID_AUTH_MODE = "invalid"

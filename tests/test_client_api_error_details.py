@@ -7,7 +7,7 @@ from src.request_context import reset_request_token_claims, set_request_token_cl
 def test_build_details_includes_hint_for_900909() -> None:
     body = '{"fault":{"code":"900909","message":"Authentication Failure"}}'
     reset = set_request_token_claims(
-        {"azp": "app-guid", "sub": "user-guid", "scopes": ["accubid_agentic_ai"]}
+        {"azp": "app-guid", "sub": "user-guid", "scopes": ["openid", "accubid_agentic_ai"]}
     )
     try:
         d = _build_accubid_api_error_details(
@@ -20,7 +20,7 @@ def test_build_details_includes_hint_for_900909() -> None:
         )
         assert d["actor_azp"] == "app-guid"
         assert d["actor_sub"] == "user-guid"
-        assert d["actor_scopes"] == ["accubid_agentic_ai"]
+        assert d["actor_scopes"] == ["openid", "accubid_agentic_ai"]
         assert "900909" in d["hint"]
         assert "app-guid" in d["hint"]
     finally:

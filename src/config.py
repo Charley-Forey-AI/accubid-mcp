@@ -191,6 +191,18 @@ class Config:
 
     @classmethod
     def _validate_delegated_settings(cls) -> None:
+        missing_obo: list[str] = []
+        if not cls.CLIENT_ID:
+            missing_obo.append("CLIENT_ID")
+        if not cls.CLIENT_SECRET:
+            missing_obo.append("CLIENT_SECRET")
+        if not cls.accubid_scopes():
+            missing_obo.append("ACCUBID_SCOPE")
+        if missing_obo:
+            raise ValueError(
+                "Delegated/hybrid actor flows require CLIENT_ID, CLIENT_SECRET, and ACCUBID_SCOPE "
+                "for Trimble token exchange (on-behalf-of). Missing: " + ", ".join(missing_obo)
+            )
         if not cls.ACCUBID_DELEGATED_VERIFY:
             return
         if not cls.ACCUBID_DELEGATED_ISSUER:
