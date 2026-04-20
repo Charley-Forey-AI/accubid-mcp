@@ -255,7 +255,7 @@ async def refresh_access_token(
 
 
 def parse_redirect_binding(redirect_uri: str) -> tuple[str, int, str]:
-    """Return (host, port, path) for the local callback server."""
+    """Return (host, port, path) parsed from redirect_uri (hostname as given in URI)."""
     parsed = urlparse(redirect_uri)
     host = parsed.hostname or "127.0.0.1"
     if parsed.port:
@@ -268,6 +268,28 @@ def parse_redirect_binding(redirect_uri: str) -> tuple[str, int, str]:
     if not path.startswith("/"):
         path = "/" + path
     return host, port, path
+
+
+def oauth_login_listen_target(redirect_uri: str) -> tuple[str, int, str]:
+    """Return (bind_host, port, path) for :class:`aiohttp.web.TCPSite` used by ``accubid-mcp-oauth-login``.
+
+    Only **loopback** redirect URIs are supported: the CLI must receive the browser redirect on this
+    machine. External URLs (e.g. n8n, ``flows.ai``) cannot be bound locally—register
+    ``http://127.0.0.1:<port>/...`` on your Trimble app and set ``OAUTH_REDIRECT_URI`` to match.
+    """
+    host, port, path = parse_redirect_binding(redirect_uri)
+    hl = (host or "").lower()
+    if hl not in ("127.0.0.1", "localhost", "::1"):
+        raise ValueError(
+            "accubid-mcp-oauth-login requires OAUTH_REDIRECT_URI to use a loopback host such as "
+            "127.0.0.1 or localhost (e.g. http://127.0.0.1:8765/oauth/callback). Register that "
+            "exact redirect URL on your Trimble OAuth application. "
+            f"This URI resolves to hostname {host!r}, which cannot run the local callback listener. "
+            "If you must use an external redirect (cloud proxy), obtain tokens another way and "
+            "write them to OAUTH_TOKEN_PATH, or use SSH port forwarding to reach 127.0.0.1."
+        )
+    bind = "::1" if hl == "::1" else "127.0.0.1"
+    return bind, port, path
 
 
 def read_token_file(path: Path) -> dict[str, Any] | None:

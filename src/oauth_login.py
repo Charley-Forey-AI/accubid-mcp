@@ -17,7 +17,7 @@ from .oauth_flow import (
     exchange_authorization_code,
     fetch_openid_metadata,
     generate_pkce_pair,
-    parse_redirect_binding,
+    oauth_login_listen_target,
     write_token_file,
 )
 
@@ -35,7 +35,10 @@ async def run_oauth_login() -> None:
     scopes = Config.accubid_scopes()
     scope_str = " ".join(scopes)
     redirect_uri = Config.OAUTH_REDIRECT_URI
-    host, port, path = parse_redirect_binding(redirect_uri)
+    try:
+        host, port, path = oauth_login_listen_target(redirect_uri)
+    except ValueError as exc:
+        raise AuthError(str(exc), details={"redirect_uri": redirect_uri}) from exc
     code_verifier, code_challenge = generate_pkce_pair()
     state = secrets.token_urlsafe(24)
 

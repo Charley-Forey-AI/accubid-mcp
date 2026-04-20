@@ -68,7 +68,7 @@ Follow [Trimble 900909 troubleshooting](#trimble-900909-subscription-inactive-tr
 pip install -e .
 ```
 
-If you use **`authorization_code`** on the server, run `accubid-mcp-oauth-login` once (browser) after saving `.env`.
+If you use **`authorization_code`** on the server, run `accubid-mcp-oauth-login` once (browser) after saving `.env`. **`OAUTH_REDIRECT_URI` must use a loopback host** (`127.0.0.1` or `localhost`) registered on your Trimble app—for example `http://127.0.0.1:8765/oauth/callback`. The CLI cannot bind to external hostnames (e.g. flows.ai/n8n callbacks); use a localhost redirect here or populate `OAUTH_TOKEN_PATH` yourself.
 
 For local development (tests, lint, typing):
 
