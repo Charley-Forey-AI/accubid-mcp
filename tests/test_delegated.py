@@ -49,6 +49,71 @@ async def test_resolve_outbound_hybrid_no_bearer_returns_none(monkeypatch: pytes
 
 
 @pytest.mark.asyncio
+async def test_resolve_outbound_hybrid_skip_obo_uses_server_oauth(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("ACCUBID_HYBRID_ACCUBID_USE_SERVER_OAUTH", "true")
+    monkeypatch.setattr(Config, "ACCUBID_AUTH_MODE", "hybrid")
+    monkeypatch.setattr(Config, "CLIENT_ID", "cid")
+    monkeypatch.setattr(Config, "CLIENT_SECRET", "sec")
+    monkeypatch.setattr(Config, "ACCUBID_SCOPE", "openid accubid_agentic_ai anywhere-database")
+    import src.delegated_jwt as dj
+
+    async def fake_verify(_t: str) -> dict:
+        return {"sub": "user-1", "azp": "studio-app"}
+
+    monkeypatch.setattr(dj, "verify_delegated_jwt", fake_verify)
+    monkeypatch.setattr(dj, "extract_bearer_raw_from_request", lambda: "actor.raw.jwt")
+
+    async def boom(*_a: object, **_kw: object) -> dict:  # pragma: no cover - must not run
+        raise AssertionError("token exchange must be skipped")
+
+    monkeypatch.setattr(dj, "exchange_on_behalf_of", boom)
+
+    token, claims = await dj.resolve_outbound_access_token()
+    assert token is None
+    assert claims["sub"] == "user-1"
+    assert claims["azp"] == "studio-app"
+
+
+@pytest.mark.asyncio
+async def test_resolve_outbound_delegated_does_not_honor_hybrid_only_flag(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """ACCUBID_HYBRID_ACCUBID_USE_SERVER_OAUTH applies only to hybrid mode."""
+    monkeypatch.setenv("ACCUBID_HYBRID_ACCUBID_USE_SERVER_OAUTH", "true")
+    monkeypatch.setattr(Config, "ACCUBID_AUTH_MODE", "delegated")
+    monkeypatch.setattr(Config, "CLIENT_ID", "cid")
+    monkeypatch.setattr(Config, "CLIENT_SECRET", "sec")
+    monkeypatch.setattr(Config, "ACCUBID_SCOPE", "openid accubid_agentic_ai")
+    import src.delegated_jwt as dj
+
+    async def fake_verify(_t: str) -> dict:
+        return {"sub": "user-1", "azp": "studio"}
+
+    monkeypatch.setattr(dj, "verify_delegated_jwt", fake_verify)
+    monkeypatch.setattr(dj, "extract_bearer_raw_from_request", lambda: "actor.raw.jwt")
+
+    calls: list[dict] = []
+
+    async def fake_exchange(session, **kw):  # noqa: ARG001
+        calls.append(kw)
+        return {"access_token": "exchanged", "expires_in": 3600}
+
+    monkeypatch.setattr(dj, "exchange_on_behalf_of", fake_exchange)
+    monkeypatch.setattr(
+        dj,
+        "resolve_token_endpoint",
+        AsyncMock(return_value="https://id.trimble.com/oauth/token"),
+    )
+
+    token, claims = await dj.resolve_outbound_access_token()
+    assert token == "exchanged"
+    assert claims["sub"] == "user-1"
+    assert len(calls) == 1
+
+
+@pytest.mark.asyncio
 async def test_resolve_outbound_delegated_exchanges_token(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(Config, "ACCUBID_AUTH_MODE", "delegated")
     monkeypatch.setattr(Config, "CLIENT_ID", "cid")
@@ -82,6 +147,42 @@ async def test_resolve_outbound_delegated_exchanges_token(monkeypatch: pytest.Mo
     assert len(calls) == 1
     assert calls[0]["subject_token"] == "actor.raw.jwt"
     assert calls[0]["scope"] == "openid accubid_agentic_ai"
+    assert calls[0].get("resource") is None
+
+
+@pytest.mark.asyncio
+async def test_resolve_outbound_delegated_passes_token_exchange_resource(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("ACCUBID_TOKEN_EXCHANGE_RESOURCE", "https://cloud.api.trimble.com/anywhere")
+    monkeypatch.setattr(Config, "ACCUBID_AUTH_MODE", "delegated")
+    monkeypatch.setattr(Config, "CLIENT_ID", "cid")
+    monkeypatch.setattr(Config, "CLIENT_SECRET", "sec")
+    monkeypatch.setattr(Config, "ACCUBID_SCOPE", "openid accubid_agentic_ai")
+    import src.delegated_jwt as dj
+
+    async def fake_verify(_t: str) -> dict:
+        return {"sub": "user-1", "azp": "studio-app"}
+
+    monkeypatch.setattr(dj, "verify_delegated_jwt", fake_verify)
+    monkeypatch.setattr(dj, "extract_bearer_raw_from_request", lambda: "actor.raw.jwt")
+
+    calls: list[dict] = []
+
+    async def fake_exchange(session, **kw):  # noqa: ARG001
+        calls.append(kw)
+        return {"access_token": "exchanged-at", "expires_in": 3600}
+
+    monkeypatch.setattr(dj, "exchange_on_behalf_of", fake_exchange)
+    monkeypatch.setattr(
+        dj,
+        "resolve_token_endpoint",
+        AsyncMock(return_value="https://id.trimble.com/oauth/token"),
+    )
+
+    await dj.resolve_outbound_access_token()
+    assert len(calls) == 1
+    assert calls[0]["resource"] == "https://cloud.api.trimble.com/anywhere"
 
 
 @pytest.mark.asyncio
@@ -177,6 +278,34 @@ async def test_exchange_on_behalf_of_success_mock_session() -> None:
     import base64
 
     assert kwargs["headers"]["Authorization"] == "Basic " + base64.b64encode(b"c:s").decode()
+
+
+@pytest.mark.asyncio
+async def test_exchange_on_behalf_of_includes_resource_in_form() -> None:
+    from src.oauth_flow import exchange_on_behalf_of
+
+    response = MagicMock()
+    response.status = 200
+    response.text = AsyncMock(return_value='{"access_token":"at1"}')
+    post_cm = MagicMock()
+    post_cm.__aenter__ = AsyncMock(return_value=response)
+    post_cm.__aexit__ = AsyncMock(return_value=None)
+
+    session = MagicMock()
+    session.post = MagicMock(return_value=post_cm)
+
+    await exchange_on_behalf_of(
+        session,
+        token_endpoint="https://id.trimble.com/oauth/token",
+        client_id="c",
+        client_secret="s",
+        subject_token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIn0.sig",
+        scope="openid accubid_agentic_ai",
+        resource="https://cloud.api.trimble.com/anywhere",
+    )
+    _url, kwargs = session.post.call_args
+    assert "resource=" in kwargs["data"]
+    assert "cloud.api.trimble.com" in kwargs["data"]
 
 
 @pytest.mark.asyncio

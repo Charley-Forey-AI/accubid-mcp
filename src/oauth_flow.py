@@ -49,12 +49,15 @@ async def exchange_on_behalf_of(
     client_secret: str,
     subject_token: str,
     scope: str,
+    resource: str | None = None,
 ) -> dict[str, Any]:
     """RFC 8693-style token exchange at Trimble ``/oauth/token`` (On-Behalf-Of).
 
     Uses HTTP Basic ``client_id:client_secret``. Tries JWT ``subject_token_type`` when the
     subject looks like a JWT; otherwise ``access_token``. Retries once with JWT type on
     ``400`` + ``not supported`` when the first attempt used ``access_token`` type.
+
+    If ``resource`` is set (RFC 8707 resource indicator), it is included in the token request.
 
     Returns the parsed JSON object (must include ``access_token``). Raises :class:`AuthError`
     on failure (no fallback).
@@ -76,12 +79,14 @@ async def exchange_on_behalf_of(
     )
 
     async def do_exchange(stype: str) -> tuple[int, str]:
-        form = {
+        form: dict[str, str] = {
             "grant_type": "urn:ietf:params:oauth:grant-type:token-exchange",
             "subject_token": subject_token,
             "subject_token_type": stype,
             "scope": scope,
         }
+        if resource:
+            form["resource"] = resource
         body = urlencode(form)
         async with session.post(token_endpoint, data=body, headers=headers) as response:
             return response.status, await response.text()

@@ -171,6 +171,17 @@ class Config:
         return env_truthy("ACCUBID_DEBUG_LOG_OUTBOUND_TOKEN")
 
     @classmethod
+    def token_exchange_resource(cls) -> str | None:
+        """Optional RFC 8707 `resource` URI for On-Behalf-Of token exchange; unset when empty."""
+        r = os.getenv("ACCUBID_TOKEN_EXCHANGE_RESOURCE", "").strip()
+        return r or None
+
+    @classmethod
+    def hybrid_accubid_use_server_oauth(cls) -> bool:
+        """Hybrid + actor JWT: skip OBO and use server OAuth for Accubid HTTP; actor kept for diagnostics."""
+        return env_truthy("ACCUBID_HYBRID_ACCUBID_USE_SERVER_OAUTH")
+
+    @classmethod
     def accubid_api_version_for_request(cls, area: str, _endpoint_path: str) -> str:
         """Return the API version segment (e.g. v1, v2) for a given area and path."""
         mapping = {

@@ -218,9 +218,12 @@ def _obo_cache_ttl_seconds(expires_in: int | None) -> float:
 async def resolve_outbound_access_token() -> tuple[str | None, dict[str, Any] | None]:
     """Return (bearer token for Accubid API, safe actor JWT claims) or (None, None) for server OAuth.
 
-    In ``delegated`` / ``hybrid`` (with actor), the first value is an access token obtained via
+    In ``delegated`` / ``hybrid`` (with actor), the first value is usually an access token from
     Trimble token exchange so ``azp`` matches this MCP's ``CLIENT_ID`` (subscribed app), not the
     Agent Studio client. ``claims`` always reflects the inbound actor for diagnostics.
+
+    If ``hybrid`` and ``ACCUBID_HYBRID_ACCUBID_USE_SERVER_OAUTH`` is true, returns ``(None, claims)``
+    and Accubid HTTP uses the server OAuth token instead of OBO.
     """
     mode = Config.ACCUBID_AUTH_MODE
     if mode == "server":
@@ -242,6 +245,14 @@ async def resolve_outbound_access_token() -> tuple[str | None, dict[str, Any] | 
     else:
         claims = safe_claims_unverified(raw)
 
+    if mode == "hybrid" and Config.hybrid_accubid_use_server_oauth():
+        logger.info(
+            "ACCUBID_HYBRID_ACCUBID_USE_SERVER_OAUTH enabled: skipping On-Behalf-Of exchange; "
+            "Accubid requests use server OAuth (CLIENT_ID / ACCUBID_OAUTH_GRANT). "
+            "Actor JWT is validated for diagnostics only."
+        )
+        return None, claims
+
     scope_str = " ".join(Config.accubid_scopes())
     sub = str(claims.get("sub") or "").strip() or "__missing_sub__"
     cache_key = (sub, scope_str)
@@ -261,6 +272,7 @@ async def resolve_outbound_access_token() -> tuple[str | None, dict[str, Any] | 
             client_secret=Config.CLIENT_SECRET,
             subject_token=raw,
             scope=scope_str,
+            resource=Config.token_exchange_resource(),
         )
 
     access = str(token_data.get("access_token") or token_data.get("AccessToken") or "").strip()

@@ -226,6 +226,13 @@ def run_http() -> None:
     signal.signal(signal.SIGTERM, lambda *_args: _close_client_sync())
     signal.signal(signal.SIGINT, lambda *_args: _close_client_sync())
     logger.info("Starting HTTP server on %s:%s%s", kwargs["host"], kwargs["port"], kwargs["path"])
+    if Config.ACCUBID_AUTH_MODE in ("delegated", "hybrid"):
+        logger.info(
+            "Delegated/hybrid: On-Behalf-Of token exchange uses CLIENT_ID=%s — confirm this matches "
+            "the OAuth application in Postman and Trimble Developer Console; decode outbound JWT "
+            "`azp` and compare with authorization-code tokens when troubleshooting 900909.",
+            Config.CLIENT_ID or "(unset)",
+        )
     if Config.debug_log_outbound_token():
         logger.warning(
             "ACCUBID_DEBUG_LOG_OUTBOUND_TOKEN is enabled: full OAuth bearer will be logged "
