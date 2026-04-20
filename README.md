@@ -271,11 +271,9 @@ Accubid Anywhere ties **401** / fault **`900909`** to the **OAuth client** on th
 
 **If `outbound_scope_claim` already includes `anywhere-database` and you still get 900909:** the MCP is exchanging and requesting the right scopes. Postman uses **authorization-code**; Agent Studio uses **token-exchange**. Trimble’s Accubid gateway may apply **different subscription rules** for those two grant types.
 
-**Do not set `ACCUBID_TOKEN_EXCHANGE_RESOURCE`.** Trimble Identity returns HTTP 400: `resource parameter explicitly rejected by this IDP` — RFC 8707 resource indicators are not supported on Trimble token exchange.
+**Do not set `ACCUBID_TOKEN_EXCHANGE_RESOURCE` or `ACCUBID_TOKEN_EXCHANGE_AUDIENCE`.** Trimble Identity returns HTTP 400 for both: `resource` / `audience` **parameter explicitly rejected by this IDP**. Token exchange requests may only include **`grant_type`**, **`subject_token`**, **`subject_token_type`**, and **`scope`** (plus your client auth).
 
-**Optional:** try **`ACCUBID_TOKEN_EXCHANGE_AUDIENCE=<GUID>`** only (restart MCP). Use one value from your outbound JWT’s `aud` claim (often a second GUID beside your `client_id`), visible in tool error details as `outbound_aud`.
-
-If Postman still works with the same `CLIENT_ID` but audience does not help, open a **Trimble support** case: compare decoded JWT from **authorization_code** vs **token_exchange** (claims `aud`, `azp`, `scope`) and the 900909 timestamp.
+If Postman works with the same `CLIENT_ID` but Agent Studio + MCP still get **900909** with **`anywhere-database`** on the outbound token, open a **Trimble support** case: ask that **Accubid Anywhere Database API** entitlement apply to **RFC 8693 token-exchange** access tokens for your OAuth app, and attach decoded JWTs from **authorization_code** (Postman) vs **token_exchange** (`aud`, `azp`, `scope`) at the 900909 timestamp.
 
 The MCP **exchanges** the Agent Studio actor token using **`CLIENT_ID`** / **`CLIENT_SECRET`**. Accubid should see **`azp`** = your MCP app after exchange. Tool errors include **`actor_azp`** / **`actor_sub`** (unverified decode of the inbound JWT) for diagnostics.
 

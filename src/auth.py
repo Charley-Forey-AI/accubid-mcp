@@ -55,10 +55,6 @@ def _cache_key(actor_token: str, scope_str: str) -> str:
     h.update(actor_token.encode("utf-8"))
     h.update(b"\n")
     h.update(scope_str.encode("utf-8"))
-    a = Config.token_exchange_audience()
-    if a:
-        h.update(b"\naud:")
-        h.update(a.encode("utf-8"))
     return h.hexdigest()
 
 
@@ -116,10 +112,8 @@ class AccubidAuth:
             "subject_token_type": subject_token_type,
             "scope": scope_str,
         }
-        # Trimble Identity rejects RFC 8707 `resource` on token exchange ("explicitly rejected by this IDP").
-        audience = Config.token_exchange_audience()
-        if audience:
-            form["audience"] = audience
+        # Trimble Identity rejects optional RFC 8693/8707 `resource` and `audience` on token exchange
+        # ("explicitly rejected by this IDP"). Send only grant_type, subject_token, subject_token_type, scope.
         body = urlencode(form)
         async with session.post(token_endpoint, data=body, headers=headers) as response:
             return response.status, await response.text()
