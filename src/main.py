@@ -17,7 +17,7 @@ from fastmcp.server.middleware.middleware import CallNext, Middleware, Middlewar
 from .auth import AccubidAuth
 from .client import AccubidClient
 from .config import Config
-from .errors import AuthError, DependencyCheckError
+from .errors import DependencyCheckError
 from .log_config import get_logger, setup_logging
 from .metrics import render_metrics
 from .observability import clear_request_id, error_response, success_response
@@ -106,26 +106,14 @@ def create_app() -> AppContainer:
         return {"tools": tools}
 
     async def _run_dependency_checks() -> dict:
-        try:
-            if Config.ACCUBID_AUTH_MODE == "delegated":
-                checks: dict[str, str] = {
-                    "trimble_identity": "delegated_actor_token_per_request",
-                }
-            else:
-                await auth.get_access_token()
-                checks = {"trimble_identity": "ok"}
-            if Config.STARTUP_VALIDATE_ACCUBID:
-                if Config.ACCUBID_AUTH_MODE == "delegated":
-                    checks["accubid_api"] = "skipped_requires_actor_token"
-                else:
-                    await client.get_databases()
-                    checks["accubid_api"] = "ok"
-            return checks
-        except Exception as exc:
-            raise DependencyCheckError(
-                "Dependency health check failed",
-                details={"cause": str(exc)},
-            ) from exc
+        """Env is validated at import; live TID/Accubid calls need Authorization: Bearer per request."""
+        checks: dict[str, str] = {
+            "auth": "on_behalf_of_token_exchange",
+            "trimble_identity": "authorization_bearer_required_per_mcp_request",
+        }
+        if Config.STARTUP_VALIDATE_ACCUBID:
+            checks["accubid_api"] = "skipped_requires_streamable_http_and_actor_bearer"
+        return checks
 
     @mcp.custom_route("/health", methods=["GET"])
     async def health_check(_request):
@@ -215,7 +203,11 @@ def _close_client_sync() -> None:
 
 
 def run() -> None:
-    """Run in STDIO mode."""
+    """Run in STDIO mode (no per-request HTTP headers; Accubid tools will fail without streamable HTTP)."""
+    logger.warning(
+        "STDIO transport: Accubid auth requires streamable HTTP from Agent Studio with "
+        "Authorization: Bearer (actor token). Use: python -m src.main --http"
+    )
     app.mcp.run()
 
 
@@ -226,13 +218,11 @@ def run_http() -> None:
     signal.signal(signal.SIGTERM, lambda *_args: _close_client_sync())
     signal.signal(signal.SIGINT, lambda *_args: _close_client_sync())
     logger.info("Starting HTTP server on %s:%s%s", kwargs["host"], kwargs["port"], kwargs["path"])
-    if Config.ACCUBID_AUTH_MODE in ("delegated", "hybrid"):
-        logger.info(
-            "Delegated/hybrid: On-Behalf-Of token exchange uses CLIENT_ID=%s — confirm this matches "
-            "the OAuth application in Postman and Trimble Developer Console; decode outbound JWT "
-            "`azp` and compare with authorization-code tokens when troubleshooting 900909.",
-            Config.CLIENT_ID or "(unset)",
-        )
+    logger.info(
+        "On-behalf-of token exchange uses CLIENT_ID=%s — confirm it matches the OAuth app in "
+        "Trimble Developer Console (token exchange enabled, Accubid subscribed).",
+        Config.CLIENT_ID or "(unset)",
+    )
     if Config.debug_log_outbound_token():
         logger.warning(
             "ACCUBID_DEBUG_LOG_OUTBOUND_TOKEN is enabled: full OAuth bearer will be logged "
@@ -259,20 +249,8 @@ def main() -> None:
     if Config.STARTUP_VALIDATE_DEPENDENCIES:
         try:
             asyncio.run(app.run_dependency_checks())
-        except DependencyCheckError as exc:
-            # Authorization-code mode: missing token file / failed refresh raises AuthError and would
-            # exit before uvicorn binds (nginx 502). Allow the server to start so /health and MCP work
-            # once tokens exist at OAUTH_TOKEN_PATH.
-            if Config.ACCUBID_OAUTH_GRANT == "authorization_code" and isinstance(exc.__cause__, AuthError):
-                cause = str((exc.details or {}).get("cause", exc))
-                logger.warning(
-                    "Startup dependency check skipped (authorization_code / AuthError): %s. "
-                    "Server starting; set tokens at %s or run accubid-mcp-oauth-login.",
-                    cause,
-                    Config.oauth_token_path_resolved(),
-                )
-            else:
-                raise
+        except DependencyCheckError:
+            raise
         else:
             logger.info("Startup dependency checks passed.")
     if "--http" in sys.argv:

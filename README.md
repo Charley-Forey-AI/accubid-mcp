@@ -4,7 +4,7 @@ MCP server for Accubid Anywhere APIs with Trimble Identity authentication.
 
 ## Features
 
-- Trimble Identity auth: **server** (`client_credentials` / `authorization_code`), **delegated** (Agent Studio actor JWT + Trimble **token exchange** so outbound calls use your subscribed app), or **hybrid** (exchange when an actor token is present, else server OAuth)
+- Trimble Identity **on-behalf-of** auth: each MCP HTTP request carries `Authorization: Bearer <actor JWT>` (e.g. from Agent Studio); the server **exchanges** it at `id.trimble.com/oauth/token` (RFC 8693) so Accubid Anywhere receives a token for **your** `CLIENT_ID`
 - Domain tools for:
   - database
   - project
@@ -24,51 +24,23 @@ MCP server for Accubid Anywhere APIs with Trimble Identity authentication.
 - Structured response envelope with stable error codes and request IDs
 - Runtime-enriched tool discovery metadata (`required_params`, `optional_params`, alias info)
 
-## Unblock successful Accubid calls
+## Authentication (Trimble Agent Studio)
 
-If Accubid returns **401 / fault `900909`** while **Postman authorization-code** tokens work against the same API paths, Trimble is rejecting the **token-exchange** bearer—the MCP HTTP stack is rarely the cause.
+1. **Register one OAuth application** in [Trimble Developer Console](https://console.trimble.com/) with **token exchange (On-Behalf-Of)** enabled and **Accubid Anywhere** subscribed for that app.
+2. Copy `.env.example` to `.env` and set **`CLIENT_ID`**, **`CLIENT_SECRET`**, and **`ACCUBID_SCOPE`** (default `openid accubid_agentic_ai` — align with your Postman authorize `scope=` when debugging).
+3. Run the MCP with **streamable HTTP** (`python -m src.main --http` or `accubid-mcp-http`). **STDIO** has no per-request HTTP headers; tools will fail without an actor Bearer.
+4. Connect from **Agent Studio** so each MCP request includes **`Authorization: Bearer &lt;actor JWT&gt;`** (On behalf of actor). The server exchanges that token at **`POST {issuer}/oauth/token`** with `grant_type=urn:ietf:params:oauth:grant-type:token-exchange` and uses the returned access token for Accubid API calls.
 
-### Path A — Server OAuth + authorization code (recommended first)
-
-Use the **same grant as working Postman** (direct access token for your app, no On-Behalf-Of):
-
-1. Set **`ACCUBID_AUTH_MODE=server`** (not `delegated`).
-2. Set **`ACCUBID_OAUTH_GRANT=authorization_code`**, **`CLIENT_ID`**, **`CLIENT_SECRET`**, and **`ACCUBID_SCOPE`** to match your working Postman app—include API scopes required for each area (e.g. **`anywhere-database`** for Database tools).
-3. Register **`OAUTH_REDIRECT_URI`** on the Trimble app and mirror it in `.env`; run **`accubid-mcp-oauth-login`** once on the MCP host; restart the service.
-4. Use MCP clients that do **not** force Agent Studio actor tokens as the Accubid bearer (or accept that Studio’s actor is not used for Accubid auth in this mode).
-
-Outbound calls use [`auth.get_access_token()`](src/auth.py), i.e. the **stored OAuth user token**, not token exchange.
-
-**Trade-off:** No per-request **On-Behalf-Of** identity from Agent Studio for Accubid.
-
-### Path B — Hybrid + skip token exchange (`ACCUBID_HYBRID_ACCUBID_USE_SERVER_OAUTH`)
-
-When Agent Studio must connect over HTTP **but** OBO tokens get **900909** while **authorization-code** tokens succeed:
-
-1. Configure **`ACCUBID_AUTH_MODE=hybrid`** with server OAuth (`authorization_code` or `client_credentials`) as for Path A.
-2. Set **`ACCUBID_HYBRID_ACCUBID_USE_SERVER_OAUTH=true`** in `.env` and restart.
-
-The actor JWT is **still validated** so errors can include **`actor_azp`** / **`actor_sub`**; Accubid HTTP uses the **server OAuth** token only.
-
-**Trade-off:** Accubid sees the **server** identity, not an OBO-exchanged token for the Studio actor.
-
-### Path C — Fix delegated / OBO with Trimble
-
-Follow [Trimble 900909 troubleshooting](#trimble-900909-subscription-inactive-troubleshooting): same **`CLIENT_ID`** as Postman, scopes, Developer Console subscription and token-exchange settings, optional **`ACCUBID_TOKEN_EXCHANGE_RESOURCE`** only if Trimble specifies it, and escalation to Trimble support with both token profiles if needed.
+Postman **authorization-code** tokens are issued directly to your app; the MCP path uses **token exchange** instead. Both should target the **same `CLIENT_ID`** and compatible **scopes** for Accubid to accept the outbound bearer.
 
 ## Setup
 
-1. Copy `.env.example` to `.env`.
-2. Set **`ACCUBID_AUTH_MODE`** (`server`, `delegated`, or `hybrid`) and the variables below that match your deployment.
-3. **Server OAuth** (`ACCUBID_AUTH_MODE=server` or for fallback in `hybrid`): set `CLIENT_ID`, `CLIENT_SECRET`, and `ACCUBID_SCOPE` (e.g. `anywhere-database` … `anywhere-changeorder`). Set **`ACCUBID_OAUTH_GRANT`** to **`client_credentials`** or **`authorization_code`** (user token file + `accubid-mcp-oauth-login`; see `.env.example`).
-4. **Delegated / Agent Studio** (`ACCUBID_AUTH_MODE=delegated` or `hybrid` with actor): use **streamable HTTP** from Studio so each request carries the **On behalf of actor** JWT. Set **`CLIENT_ID`**, **`CLIENT_SECRET`**, and **`ACCUBID_SCOPE`** (same as server OAuth): the server validates the actor JWT, then calls Trimble Identity **RFC 8693 token exchange** so Accubid Anywhere receives an access token issued for **your** app (the one subscribed to the Accubid Anywhere API in the Developer Portal)—not Agent Studio’s `azp`. In the [Trimble Developer Console](https://console.trimble.com/), enable the **token exchange (On-Behalf-Of)** grant for that application. Configure **`ACCUBID_DELEGATED_ISSUER`**, optional **`ACCUBID_DELEGATED_JWKS_URL`**, **`ACCUBID_DELEGATED_AUDIENCE`**, and **`ACCUBID_DELEGATED_REQUIRED_SCOPES`**. The **`scope`** claim often lists only `accubid_agentic_ai` while Studio still shows `openid`; you may include **`openid`** in required scopes anyway—the server treats **`openid`** as satisfied when the JWT has OIDC identity claims **`iss`** and **`sub`** even if `openid` is not a token in **`scope`**.
-5. Install dependencies:
+1. Copy `.env.example` to `.env` and set **`CLIENT_ID`**, **`CLIENT_SECRET`**, **`ACCUBID_SCOPE`**.
+2. Install dependencies:
 
 ```bash
 pip install -e .
 ```
-
-If you use **`authorization_code`** on the server, run `accubid-mcp-oauth-login` once (browser) after saving `.env`. **`OAUTH_REDIRECT_URI` must use a loopback host** (`127.0.0.1` or `localhost`) registered on your Trimble app—for example `http://127.0.0.1:8765/oauth/callback`. The CLI cannot bind to external hostnames (e.g. flows.ai/n8n callbacks); use a localhost redirect here or populate `OAUTH_TOKEN_PATH` yourself.
 
 For local development (tests, lint, typing):
 
@@ -76,26 +48,14 @@ For local development (tests, lint, typing):
 pip install -e ".[dev]"
 ```
 
-### Authorization code vs token exchange (delegated)
+### Authorization code (Postman) vs token exchange (MCP)
 
-These are **different OAuth grants**, so access tokens are **not** interchangeable by default:
+| Flow | What happens |
+|------|----------------|
+| **Authorization code** (Postman) | User consents; Trimble issues an access token **directly** for your `client_id`. |
+| **Token exchange** (this MCP) | MCP sends the **actor JWT** as `subject_token`; Trimble returns a **new** access token for **`CLIENT_ID`** with scopes from **`ACCUBID_SCOPE`**. |
 
-| Flow | What happens | Typical use |
-|------|----------------|-------------|
-| **Authorization code** (e.g. Postman `/oauth/authorize` → `/oauth/token`) | User consents; Trimble issues an access token **directly** for your `client_id` and requested scopes. | Interactive login, tools like Postman. |
-| **Token exchange / On-Behalf-Of** (`ACCUBID_AUTH_MODE=delegated` or `hybrid` with actor) | MCP sends the **Agent Studio actor JWT** as `subject_token` to `/oauth/token` with `grant_type=...token-exchange`; Trimble returns a **new** access token for **`CLIENT_ID`** with scopes from **`ACCUBID_SCOPE`**. | Agent Studio passes the actor token; MCP exchanges it so Accubid sees **your** subscribed app. |
-
-**Verify before blaming “MCP vs Postman”:**
-
-1. **`client_id` must match** — The `client_id` in your Postman authorize URL must equal **`CLIENT_ID`** in `.env`. On HTTP startup the server logs which `CLIENT_ID` is used for OBO. If Postman uses App A and MCP uses App B, one token can work at Accubid while the other returns `900909`.
-2. **Decode JWTs locally** — Compare **`azp`**, **`scope`** (string claim), and **`aud`** between a **working** authorization-code access token and the **outbound** token from MCP (enable `ACCUBID_DEBUG_LOG_OUTBOUND_TOKEN` briefly). They should reflect the **same** app (`azp`) when configured correctly; differences in `scope` mean **`ACCUBID_SCOPE`** should be aligned with the authorize URL’s `scope=` plus API scopes Trimble requires (e.g. `anywhere-database`).
-3. **`ACCUBID_SCOPE`** — The OBO request sends exactly the joined list from `ACCUBID_SCOPE`. Match what you request in Postman’s authorize step for overlapping scopes.
-
-If auth-code tokens work against Accubid but OBO tokens still return **`900909`** after matching `client_id` and scopes, entitlement for **token-exchange**-issued tokens may differ from authorization-code tokens at Trimble—open a support case with both token profiles (grant type, `azp`, `scope`), not only MCP logs.
-
-**Optional:** If Trimble Identity documentation or support specifies a **resource indicator** for token exchange (RFC 8707), set **`ACCUBID_TOKEN_EXCHANGE_RESOURCE`** (see `.env.example`). Do not guess the value; confirm with Trimble first.
-
-**Prove the MCP stack without Studio:** Run **`ACCUBID_AUTH_MODE=server`** with **`ACCUBID_OAUTH_GRANT=authorization_code`** (same flow as Postman; token file via `accubid-mcp-oauth-login`). If that works to Accubid but delegated does not, focus on OBO configuration and Trimble portal settings for token exchange.
+**Debug:** Set **`ACCUBID_DEBUG_LOG_OUTBOUND_TOKEN=true`** briefly; compare outbound JWT **`azp`** to your Postman token. Both should be your subscribed app when **`CLIENT_ID`** matches.
 
 ## Run
 
@@ -250,11 +210,11 @@ When the API circuit breaker is open, error code `circuit_open` is returned.
   - `GET /health` in HTTP mode.
 - Verify dependency readiness:
   - `GET /ready` in HTTP mode.
-- Optional dependency validation:
-  - Set `HEALTHCHECK_VERIFY_DEPENDENCIES=true` to have `/health` verify Trimble Identity.
-- Startup fail-fast checks:
-  - Set `STARTUP_VALIDATE_DEPENDENCIES=true` to validate identity connectivity before serving.
-  - Set `STARTUP_VALIDATE_ACCUBID=true` to additionally validate Accubid API connectivity at startup/health-check.
+- Optional dependency metadata:
+  - Set `HEALTHCHECK_VERIFY_DEPENDENCIES=true` to have `/health` include structured checks (env is validated at import; live Accubid calls still need an actor Bearer per request).
+- Startup checks:
+  - Set `STARTUP_VALIDATE_DEPENDENCIES=true` to run dependency checks at startup.
+  - Set `STARTUP_VALIDATE_ACCUBID=true` to note that Accubid API validation requires streamable HTTP with an actor token (see checks payload).
 - JSON logs:
   - Set `LOG_FORMAT=json`.
 - Retry tuning:
@@ -298,30 +258,16 @@ When the API circuit breaker is open, error code `circuit_open` is returned.
 
 ## Trimble 900909 (“subscription inactive”) troubleshooting
 
-Accubid Anywhere ties **401** / fault **`900909`** (“The subscription to the API is inactive”) to the **OAuth client** on the **outbound** access token (JWT claim **`azp`** on that token), not to URL typos alone.
+Accubid Anywhere ties **401** / fault **`900909`** to the **OAuth client** on the **outbound** access token (JWT claim **`azp`**), not to URL typos alone.
 
-**Escalation checklist (Path C)**
+**Checklist**
 
-1. **`client_id` parity** — The **`client_id`** in your Postman `/oauth/authorize` URL must equal **`CLIENT_ID`** in MCP `.env`. Different apps → different **`azp`** → different subscription.
-2. **Scopes** — **`ACCUBID_SCOPE`** (used in token exchange) must include every scope you need for the APIs you call; align with your successful Postman authorize **`scope=`** plus API scopes (e.g. **`anywhere-database`**).
-3. **Developer Console** — For that **`CLIENT_ID`**: Accubid Anywhere product subscribed, **token exchange (On-Behalf-Of)** enabled, scopes granted for the app.
-4. **Prove it is grant-specific** — If the **same** **`CLIENT_ID`** works with **authorization-code** tokens but **token-exchange** tokens fail with **900909** after steps 1–3, contact **Trimble support** with: timestamp, **`900909`**, outbound JWT **`azp`** / **`scope`** from error details, grant type (`authorization_code` vs `token-exchange`), and **`actor_account_id`** when applicable.
-5. **`ACCUBID_TOKEN_EXCHANGE_RESOURCE`** — Set **only** if Trimble Identity documentation or support gives the exact resource URI (RFC 8707); see `.env.example`.
+1. **`client_id` parity** — Postman’s `client_id` must equal **`CLIENT_ID`** in `.env`.
+2. **Scopes** — **`ACCUBID_SCOPE`** in token exchange must cover the APIs you call; align with Postman’s authorize **`scope=`** (e.g. `openid accubid_agentic_ai` and any additional Trimble-required API scopes).
+3. **Developer Console** — For **`CLIENT_ID`**: Accubid Anywhere subscribed, **token exchange (On-Behalf-Of)** enabled.
+4. **Still failing?** — If authorization-code tokens work but exchanged tokens do not, contact **Trimble support** with outbound JWT **`azp`** / **`scope`** from tool error details (and **`actor_azp`** from the inbound actor JWT for correlation).
 
-**Delegated / hybrid with actor (default behavior)**
-
-The MCP **exchanges** the Agent Studio actor token for a new access token using **`CLIENT_ID`** / **`CLIENT_SECRET`** (see [Trimble Identity](https://developer.trimble.com/docs/authentication/) token exchange). The Accubid API should see **`azp`** = your MCP app. If you still get **900909**:
-
-1. In the [Trimble Developer Console](https://console.trimble.com/), open the app matching **`CLIENT_ID`** in `.env` (not Agent Studio’s client).
-2. Confirm that app is **subscribed** to the **Accubid Anywhere** API products you call, and that **token exchange (On-Behalf-Of)** is allowed for the app.
-3. Tool errors still include **`actor_azp`** / **`actor_sub`** from the **inbound** actor JWT for support correlation.
-4. Consider **Path B** (`ACCUBID_HYBRID_ACCUBID_USE_SERVER_OAUTH`) under [Unblock successful Accubid calls](#unblock-successful-accubid-calls) if you must keep Studio HTTP but Accubid should use the server OAuth bearer like Postman.
-
-**If you forwarded the raw actor token (older builds)**
-
-If **`azp`** in diagnostics is Agent Studio’s app, that token was sent unchanged to Accubid; subscribe that client in the portal or upgrade to the token-exchange flow above.
-
-Postman can succeed with a different **`client_id`** than Studio’s actor token—same user, different **`azp`** → different product entitlement until exchange is used.
+The MCP **exchanges** the Agent Studio actor token using **`CLIENT_ID`** / **`CLIENT_SECRET`**. Accubid should see **`azp`** = your MCP app after exchange. Tool errors include **`actor_azp`** / **`actor_sub`** (unverified decode of the inbound JWT) for diagnostics.
 
 ## Security notes
 
@@ -329,7 +275,7 @@ Postman can succeed with a different **`client_id`** than Studio’s actor token
 - Prefer injecting secrets via a secure secret manager in production.
 - For HTTP mode, deploy behind a reverse proxy/load balancer that terminates TLS and enforces access control and rate limiting.
 - If browser-facing traffic is introduced, configure CORS policy at the reverse proxy/application edge.
-- Rotate `CLIENT_SECRET` regularly and monitor token refresh behavior (`ACCUBID_TOKEN_REFRESH_BUFFER_SECONDS` and `ACCUBID_TOKEN_TTL_SECONDS`).
+- Rotate `CLIENT_SECRET` regularly.
 
 ## Quality gates
 

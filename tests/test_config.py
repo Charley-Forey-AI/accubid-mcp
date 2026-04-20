@@ -12,13 +12,22 @@ def test_accubid_scopes_splits_space_and_comma() -> None:
         Config.ACCUBID_SCOPE = original
 
 
+def test_scope_string_joins_accubid_scopes() -> None:
+    original = Config.ACCUBID_SCOPE
+    try:
+        Config.ACCUBID_SCOPE = "openid accubid_agentic_ai"
+        assert Config.scope_string() == "openid accubid_agentic_ai"
+    finally:
+        Config.ACCUBID_SCOPE = original
+
+
 def test_validate_raises_when_required_missing(monkeypatch: pytest.MonkeyPatch) -> None:
     original = (Config.CLIENT_ID, Config.CLIENT_SECRET, Config.ACCUBID_SCOPE)
     Config.CLIENT_ID = ""
     Config.CLIENT_SECRET = ""
     Config.ACCUBID_SCOPE = ""
     try:
-        with pytest.raises(ValueError, match="Missing required env vars"):
+        with pytest.raises(ValueError, match="Trimble on-behalf-of"):
             Config.validate()
     finally:
         Config.CLIENT_ID, Config.CLIENT_SECRET, Config.ACCUBID_SCOPE = original
@@ -37,50 +46,17 @@ def test_validate_rejects_insecure_prod_base_url() -> None:
         Config.validate()
 
 
-def test_validate_delegated_requires_client_for_token_exchange(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Delegated mode must have CLIENT_ID/SECRET/ACCUBID_SCOPE for Trimble OBO exchange."""
-    original = (
-        Config.ACCUBID_AUTH_MODE,
-        Config.CLIENT_ID,
-        Config.CLIENT_SECRET,
-        Config.ACCUBID_SCOPE,
-    )
-    Config.ACCUBID_AUTH_MODE = "delegated"
+def test_validate_obo_requires_client_credentials(monkeypatch: pytest.MonkeyPatch) -> None:
+    """On-behalf-of flow requires CLIENT_ID/SECRET/ACCUBID_SCOPE."""
+    original = (Config.CLIENT_ID, Config.CLIENT_SECRET, Config.ACCUBID_SCOPE)
     Config.CLIENT_ID = ""
     Config.CLIENT_SECRET = ""
     Config.ACCUBID_SCOPE = "openid accubid_agentic_ai"
     try:
-        with pytest.raises(ValueError, match="token exchange"):
+        with pytest.raises(ValueError, match="Trimble on-behalf-of"):
             Config.validate()
     finally:
-        (
-            Config.ACCUBID_AUTH_MODE,
-            Config.CLIENT_ID,
-            Config.CLIENT_SECRET,
-            Config.ACCUBID_SCOPE,
-        ) = original
-        Config.validate()
-
-
-def test_validate_rejects_invalid_auth_mode() -> None:
-    original = Config.ACCUBID_AUTH_MODE
-    Config.ACCUBID_AUTH_MODE = "invalid"
-    try:
-        with pytest.raises(ValueError, match="ACCUBID_AUTH_MODE"):
-            Config.validate()
-    finally:
-        Config.ACCUBID_AUTH_MODE = original
-        Config.validate()
-
-
-def test_validate_rejects_invalid_oauth_grant() -> None:
-    original = Config.ACCUBID_OAUTH_GRANT
-    Config.ACCUBID_OAUTH_GRANT = "implicit"
-    try:
-        with pytest.raises(ValueError, match="ACCUBID_OAUTH_GRANT"):
-            Config.validate()
-    finally:
-        Config.ACCUBID_OAUTH_GRANT = original
+        Config.CLIENT_ID, Config.CLIENT_SECRET, Config.ACCUBID_SCOPE = original
         Config.validate()
 
 

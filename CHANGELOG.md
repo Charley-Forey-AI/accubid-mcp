@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.0 - 2026-04-20
+
+- **Breaking:** Authentication is **on-behalf-of only** (RFC 8693 token exchange). Removed `ACCUBID_AUTH_MODE`, server/hybrid OAuth, PKCE `accubid-mcp-oauth-login`, JWKS delegated validation, and `trimble-id` / `PyJWT` dependencies.
+- Agent Studio must send `Authorization: Bearer` on each streamable HTTP request; `CLIENT_ID` / `CLIENT_SECRET` / `ACCUBID_SCOPE` are required in `.env`.
+
 ## 0.2.0 - 2026-03-16
 
 - Added structured response envelope with stable error codes and request IDs.

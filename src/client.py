@@ -15,7 +15,12 @@ from .auth import AccubidAuth
 from .config import Config
 from .errors import ApiError
 from .log_config import get_logger
-from .request_context import get_request_access_token, get_request_token_claims
+from .request_context import (
+    get_actor_token,
+    get_request_outbound_token,
+    reset_request_outbound_token,
+    set_request_outbound_token,
+)
 from .resilience import CircuitBreaker, RateLimiter
 
 logger = get_logger()
@@ -41,8 +46,8 @@ def _unverified_jwt_payload_dict(token: str | None) -> dict[str, Any] | None:
 
 
 def _outbound_token_diagnostics() -> dict[str, Any]:
-    """Fields from the bearer sent to Accubid (request ContextVar), not the inbound actor JWT."""
-    raw = get_request_access_token()
+    """Fields from the bearer sent to Accubid (exchanged token), not the inbound actor JWT."""
+    raw = get_request_outbound_token()
     if not raw:
         return {}
     payload = _unverified_jwt_payload_dict(raw)
@@ -79,22 +84,24 @@ def _build_accubid_api_error_details(
         "response_body_truncated": truncated,
         "status_code": status_code,
     }
-    claims = get_request_token_claims()
-    if claims:
-        if claims.get("azp") is not None:
-            details["actor_azp"] = claims["azp"]
-        if claims.get("sub") is not None:
-            details["actor_sub"] = claims["sub"]
-        if claims.get("account_id") is not None:
-            details["actor_account_id"] = claims["account_id"]
-        if claims.get("scopes"):
-            details["actor_scopes"] = claims["scopes"]
+    actor_raw = get_actor_token()
+    actor_payload = _unverified_jwt_payload_dict(actor_raw) if actor_raw else None
+    if actor_payload:
+        if actor_payload.get("azp") is not None:
+            details["actor_azp"] = actor_payload["azp"]
+        if actor_payload.get("sub") is not None:
+            details["actor_sub"] = actor_payload["sub"]
+        if actor_payload.get("account_id") is not None:
+            details["actor_account_id"] = actor_payload["account_id"]
+        sc = actor_payload.get("scope")
+        if sc is not None:
+            details["actor_scopes"] = sc
 
     details.update(_outbound_token_diagnostics())
 
     if "900909" in safe_body:
         outbound_azp = details.get("outbound_azp")
-        actor_azp = (claims or {}).get("azp", "unknown")
+        actor_azp = (actor_payload or {}).get("azp", "unknown")
         shape = details.get("outbound_token_shape")
         if outbound_azp:
             details["hint"] = (
@@ -107,7 +114,7 @@ def _build_accubid_api_error_details(
         elif shape == "opaque_or_malformed":
             details["hint"] = (
                 "Trimble 900909: outbound bearer was not a decodable JWT. "
-                "With ACCUBID_AUTH_MODE=delegated, confirm token exchange at id.trimble.com "
+                "Confirm token exchange at id.trimble.com "
                 "returns a JWT access_token. "
                 f"actor_azp={actor_azp} is inbound Studio only."
             )
@@ -205,12 +212,7 @@ class AccubidClient:
         self._cache[key] = (time.time() + ttl, payload)
         self._persist_cache()
 
-    async def _headers(self) -> Dict[str, str]:
-        delegated = get_request_access_token()
-        if delegated:
-            token = delegated
-        else:
-            token = await self.auth.get_access_token()
+    def _auth_headers_dict(self, token: str) -> Dict[str, str]:
         if Config.debug_log_outbound_token():
             logger.info(
                 "ACCUBID_DEBUG_LOG_OUTBOUND_TOKEN: bearer for next Accubid request "
@@ -234,80 +236,86 @@ class AccubidClient:
     ) -> Any:
         url = Config.accubid_api_url(area, endpoint_path)
         session = self._get_session()
-        headers = await self._headers()
+        token = await self.auth.get_access_token()
+        reset_out = set_request_outbound_token(token)
+        headers = self._auth_headers_dict(token)
         attempts = 1 + max(0, Config.ACCUBID_CLIENT_RETRY_COUNT)
         last_error: Optional[Exception] = None
 
-        for attempt in range(attempts):
-            try:
-                await self._circuit_breaker.before_request()
-                await self._rate_limiter.acquire()
-                async with session.request(
-                    method=method,
-                    url=url,
-                    headers=headers,
-                    params=params,
-                    json=json_body,
-                ) as response:
-                    if response.status == 204:
-                        await self._circuit_breaker.on_success()
-                        return []
-                    if response.status >= 400:
-                        text = await response.text()
-                        await self._circuit_breaker.on_failure()
-                        safe_body = text[:2048]
-                        err_details = _build_accubid_api_error_details(
-                            method=method,
-                            endpoint_path=endpoint_path,
-                            url=url,
-                            safe_body=safe_body,
-                            full_text_len=len(text),
-                            status_code=response.status,
-                        )
-                        if response.status == 401 and "900909" in safe_body:
-                            logger.warning(
-                                "accubid_api_trimble_900909 endpoint=%s request_url=%s "
-                                "outbound_azp=%s actor_azp=%s actor_sub=%s outbound_token_shape=%s",
-                                endpoint_path,
-                                url,
-                                err_details.get("outbound_azp"),
-                                err_details.get("actor_azp"),
-                                err_details.get("actor_sub"),
-                                err_details.get("outbound_token_shape"),
+        try:
+            for attempt in range(attempts):
+                try:
+                    await self._circuit_breaker.before_request()
+                    await self._rate_limiter.acquire()
+                    async with session.request(
+                        method=method,
+                        url=url,
+                        headers=headers,
+                        params=params,
+                        json=json_body,
+                    ) as response:
+                        if response.status == 204:
+                            await self._circuit_breaker.on_success()
+                            return []
+                        if response.status >= 400:
+                            text = await response.text()
+                            await self._circuit_breaker.on_failure()
+                            safe_body = text[:2048]
+                            err_details = _build_accubid_api_error_details(
+                                method=method,
+                                endpoint_path=endpoint_path,
+                                url=url,
+                                safe_body=safe_body,
+                                full_text_len=len(text),
+                                status_code=response.status,
                             )
-                        raise ApiError(
-                            message=f"Accubid API error {response.status} for {method} {endpoint_path}",
-                            status_code=response.status,
-                            details=err_details,
-                        )
-                    if response.content_type and "json" in response.content_type:
-                        payload = await response.json()
+                            if response.status == 401 and "900909" in safe_body:
+                                logger.warning(
+                                    "accubid_api_trimble_900909 endpoint=%s request_url=%s "
+                                    "outbound_azp=%s actor_azp=%s actor_sub=%s outbound_token_shape=%s",
+                                    endpoint_path,
+                                    url,
+                                    err_details.get("outbound_azp"),
+                                    err_details.get("actor_azp"),
+                                    err_details.get("actor_sub"),
+                                    err_details.get("outbound_token_shape"),
+                                )
+                            raise ApiError(
+                                message=f"Accubid API error {response.status} for {method} {endpoint_path}",
+                                status_code=response.status,
+                                details=err_details,
+                            )
+                        if response.content_type and "json" in response.content_type:
+                            payload = await response.json()
+                            await self._circuit_breaker.on_success()
+                            return payload
+                        text = await response.text()
                         await self._circuit_breaker.on_success()
-                        return payload
-                    text = await response.text()
-                    await self._circuit_breaker.on_success()
-                    return {"raw": text}
-            except (ClientError, asyncio.TimeoutError, ApiError) as exc:
-                if isinstance(exc, (ClientError, asyncio.TimeoutError)):
-                    await self._circuit_breaker.on_failure()
-                last_error = exc
-                if isinstance(exc, ApiError) and exc.status_code not in Config.ACCUBID_CLIENT_RETRYABLE_STATUS_CODES:
+                        return {"raw": text}
+                except (ClientError, asyncio.TimeoutError, ApiError) as exc:
+                    if isinstance(exc, (ClientError, asyncio.TimeoutError)):
+                        await self._circuit_breaker.on_failure()
+                    last_error = exc
+                    retryable = Config.ACCUBID_CLIENT_RETRYABLE_STATUS_CODES
+                    if isinstance(exc, ApiError) and exc.status_code not in retryable:
+                        break
+                    if attempt < attempts - 1:
+                        backoff = min(
+                            Config.ACCUBID_CLIENT_RETRY_MAX_SECONDS,
+                            Config.ACCUBID_CLIENT_RETRY_BASE_SECONDS * (2**attempt),
+                        )
+                        await asyncio.sleep(backoff)
+                        continue
                     break
-                if attempt < attempts - 1:
-                    backoff = min(
-                        Config.ACCUBID_CLIENT_RETRY_MAX_SECONDS,
-                        Config.ACCUBID_CLIENT_RETRY_BASE_SECONDS * (2**attempt),
-                    )
-                    await asyncio.sleep(backoff)
-                    continue
-                break
 
-        if isinstance(last_error, ApiError):
-            raise last_error
-        raise ApiError(
-            message=str(last_error) if last_error else "Unknown request error",
-            details={"method": method, "endpoint_path": endpoint_path},
-        )
+            if isinstance(last_error, ApiError):
+                raise last_error
+            raise ApiError(
+                message=str(last_error) if last_error else "Unknown request error",
+                details={"method": method, "endpoint_path": endpoint_path},
+            )
+        finally:
+            reset_request_outbound_token(reset_out)
 
     async def get(self, area: str, endpoint_path: str, params: Optional[Dict[str, Any]] = None) -> Any:
         return await self._request("GET", area, endpoint_path, params=params)
