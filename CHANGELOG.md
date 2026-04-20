@@ -4,8 +4,8 @@
 
 - **Breaking:** Authentication is **on-behalf-of only** (RFC 8693 token exchange). Removed `ACCUBID_AUTH_MODE`, server/hybrid OAuth, PKCE `accubid-mcp-oauth-login`, JWKS delegated validation, and `trimble-id` / `PyJWT` dependencies.
 - Agent Studio must send `Authorization: Bearer` on each streamable HTTP request; `CLIENT_ID` / `CLIENT_SECRET` / `ACCUBID_SCOPE` are required in `.env`.
-- Optional **`ACCUBID_TOKEN_EXCHANGE_RESOURCE`** and **`ACCUBID_TOKEN_EXCHANGE_AUDIENCE`** for Trimble token exchange when 900909 persists with correct scopes.
-- HTTP shutdown: close aiohttp client in a background thread to avoid `asyncio.run()` during uvicorn’s loop (fixes “coroutine was never awaited” on SIGTERM).
+- Optional **`ACCUBID_TOKEN_EXCHANGE_AUDIENCE`** for Trimble token exchange when 900909 persists with correct scopes. **`ACCUBID_TOKEN_EXCHANGE_RESOURCE` is not used** — Trimble Identity rejects the `resource` parameter on token exchange.
+- HTTP shutdown: close aiohttp client via FastMCP ASGI lifespan (fixes “coroutine was never awaited” on SIGTERM).
 
 ## 0.2.0 - 2026-03-16
 

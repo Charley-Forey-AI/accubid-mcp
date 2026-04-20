@@ -269,12 +269,13 @@ Accubid Anywhere ties **401** / fault **`900909`** to the **OAuth client** on th
 
 **If `outbound_azp` already equals your `CLIENT_ID`** (token exchange succeeded) but you still get 900909, this is **not** an MCP wiring bug — it is scope or product subscription for that client vs. the API route.
 
-**If `outbound_scope_claim` already includes `anywhere-database` and you still get 900909:** the MCP is exchanging and requesting the right scopes. Postman uses **authorization-code**; Agent Studio uses **token-exchange**. Trimble’s Accubid gateway may apply **different subscription rules** for those two grant types, or expect an **`audience` / `resource`** on the exchange request. Try (one at a time, restart MCP after each):
+**If `outbound_scope_claim` already includes `anywhere-database` and you still get 900909:** the MCP is exchanging and requesting the right scopes. Postman uses **authorization-code**; Agent Studio uses **token-exchange**. Trimble’s Accubid gateway may apply **different subscription rules** for those two grant types.
 
-1. `ACCUBID_TOKEN_EXCHANGE_RESOURCE=https://cloud.api.trimble.com/anywhere` (RFC 8707 resource indicator).
-2. `ACCUBID_TOKEN_EXCHANGE_AUDIENCE=<GUID>` — use the Accubid API audience from your outbound JWT’s `aud` claim (often a second GUID beside your `client_id`), visible in tool error details as `outbound_aud`.
+**Do not set `ACCUBID_TOKEN_EXCHANGE_RESOURCE`.** Trimble Identity returns HTTP 400: `resource parameter explicitly rejected by this IDP` — RFC 8707 resource indicators are not supported on Trimble token exchange.
 
-If Postman still works with the same `CLIENT_ID` but these settings do not help, open a **Trimble support** case: compare decoded JWT from **authorization_code** vs **token_exchange** (claims `aud`, `azp`, `scope`) and the 900909 timestamp.
+**Optional:** try **`ACCUBID_TOKEN_EXCHANGE_AUDIENCE=<GUID>`** only (restart MCP). Use one value from your outbound JWT’s `aud` claim (often a second GUID beside your `client_id`), visible in tool error details as `outbound_aud`.
+
+If Postman still works with the same `CLIENT_ID` but audience does not help, open a **Trimble support** case: compare decoded JWT from **authorization_code** vs **token_exchange** (claims `aud`, `azp`, `scope`) and the 900909 timestamp.
 
 The MCP **exchanges** the Agent Studio actor token using **`CLIENT_ID`** / **`CLIENT_SECRET`**. Accubid should see **`azp`** = your MCP app after exchange. Tool errors include **`actor_azp`** / **`actor_sub`** (unverified decode of the inbound JWT) for diagnostics.
 

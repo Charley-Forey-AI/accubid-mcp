@@ -55,10 +55,6 @@ def _cache_key(actor_token: str, scope_str: str) -> str:
     h.update(actor_token.encode("utf-8"))
     h.update(b"\n")
     h.update(scope_str.encode("utf-8"))
-    r = Config.token_exchange_resource()
-    if r:
-        h.update(b"\nres:")
-        h.update(r.encode("utf-8"))
     a = Config.token_exchange_audience()
     if a:
         h.update(b"\naud:")
@@ -120,9 +116,7 @@ class AccubidAuth:
             "subject_token_type": subject_token_type,
             "scope": scope_str,
         }
-        resource = Config.token_exchange_resource()
-        if resource:
-            form["resource"] = resource
+        # Trimble Identity rejects RFC 8707 `resource` on token exchange ("explicitly rejected by this IDP").
         audience = Config.token_exchange_audience()
         if audience:
             form["audience"] = audience

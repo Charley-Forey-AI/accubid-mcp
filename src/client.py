@@ -118,13 +118,12 @@ def _build_accubid_api_error_details(
                 escal = (
                     " Your outbound token already includes **anywhere-database** — the MCP exchange is "
                     "behaving. 900909 here usually means Trimble’s gateway does not treat **token-exchange** "
-                    "tokens the same as **authorization-code** tokens for API subscription, or the access "
-                    "token needs a specific **audience/resource** at exchange time. "
-                    "Try `.env`: ACCUBID_TOKEN_EXCHANGE_RESOURCE=" + Config.ACCUBID_API_BASE_URL
-                    + " and/or ACCUBID_TOKEN_EXCHANGE_AUDIENCE set to the Accubid API audience GUID from "
-                    f"`outbound_aud` ({aud}). "
-                    "If Postman still works with the same client_id, escalate to **Trimble support** with "
-                    "grant_type=token-exchange vs authorization_code and decoded JWT claims for both tokens."
+                    "tokens the same as **authorization-code** tokens for API subscription. "
+                    "Trimble Identity does **not** accept RFC 8707 `resource` on token exchange — do not set "
+                    "ACCUBID_TOKEN_EXCHANGE_RESOURCE. You may try **only** "
+                    "`ACCUBID_TOKEN_EXCHANGE_AUDIENCE=<GUID>` using an API audience from `outbound_aud` "
+                    f"({aud}). "
+                    "If that fails, escalate to **Trimble support** with token_exchange vs authorization_code JWTs."
                 )
             details["hint"] = (
                 "Trimble 900909: Accubid rejected the outbound access token "

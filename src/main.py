@@ -230,19 +230,18 @@ def run_http() -> None:
         "Trimble Developer Console (token exchange enabled, Accubid subscribed).",
         Config.CLIENT_ID or "(unset)",
     )
-    r = Config.token_exchange_resource()
-    a = Config.token_exchange_audience()
-    if r or a:
-        logger.info(
-            "Token exchange optional params: resource=%s audience=%s",
-            r or "(unset)",
-            a or "(unset)",
+    if os.getenv("ACCUBID_TOKEN_EXCHANGE_RESOURCE", "").strip():
+        logger.warning(
+            "ACCUBID_TOKEN_EXCHANGE_RESOURCE is set — Trimble Identity rejects the OAuth "
+            "'resource' parameter on token exchange (HTTP 400). Remove it from .env; it is not used."
         )
+    a = Config.token_exchange_audience()
+    if a:
+        logger.info("Token exchange optional audience=%s (ACCUBID_TOKEN_EXCHANGE_AUDIENCE)", a)
     else:
         logger.info(
-            "Token exchange optional params: ACCUBID_TOKEN_EXCHANGE_RESOURCE / "
-            "ACCUBID_TOKEN_EXCHANGE_AUDIENCE not set — if you get 900909 with scopes correct, "
-            "try setting them (see README)."
+            "ACCUBID_TOKEN_EXCHANGE_AUDIENCE not set — if 900909 persists with scopes correct, "
+            "you may try one audience GUID from outbound JWT `aud` (see README)."
         )
     if Config.debug_log_outbound_token():
         logger.warning(
