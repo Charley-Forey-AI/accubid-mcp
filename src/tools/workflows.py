@@ -11,7 +11,12 @@ from ..concurrency import run_bounded
 from ..pagination import normalize_list
 from ..querying import first_present
 from ..tool_runtime import execute_tool
-from ..validation import normalize_yyyymmdd, validate_optional_text, validate_uuid_like
+from ..validation import (
+    normalize_yyyymmdd,
+    validate_database_token,
+    validate_optional_text,
+    validate_uuid_like,
+)
 
 _client: AccubidClient | None = None
 
@@ -82,7 +87,7 @@ def register(mcp: FastMCP, handler_registry: dict | None = None) -> None:
         due_date_end: str | None = None,
         include_contract_statuses: bool = True,
     ) -> dict:
-        db_token = validate_uuid_like("database_token", database_token)
+        db_token = validate_database_token("database_token", database_token)
         normalized_project_id = validate_uuid_like("project_id", project_id)
         normalized_due_start = validate_optional_text("due_date_start", due_date_start, max_length=16)
         normalized_due_end = validate_optional_text("due_date_end", due_date_end, max_length=16)
@@ -174,7 +179,7 @@ def register(mcp: FastMCP, handler_registry: dict | None = None) -> None:
         bid_summary_id: str | None = None,
         include_first_breakdown_page: bool = False,
     ) -> dict:
-        db_token = validate_uuid_like("database_token", database_token)
+        db_token = validate_database_token("database_token", database_token)
         normalized_estimate_id = validate_uuid_like("estimate_id", estimate_id)
         estimate, views = await run_bounded(
             [

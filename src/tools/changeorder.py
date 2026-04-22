@@ -6,7 +6,12 @@ from ..client import AccubidClient
 from ..pagination import normalize_list, paginate_items
 from ..querying import apply_equals_filter, apply_search, apply_sort
 from ..tool_runtime import execute_tool
-from ..validation import validate_optional_text, validate_required_text, validate_uuid_like
+from ..validation import (
+    validate_database_token,
+    validate_optional_text,
+    validate_required_text,
+    validate_uuid_like,
+)
 
 _client: AccubidClient | None = None
 
@@ -217,7 +222,7 @@ def register(mcp: FastMCP, handler_registry: dict | None = None) -> None:
         page_index: int | str | None = None,
         page_size: int | str | None = None,
     ) -> dict:
-        db_token = validate_uuid_like("database_token", database_token)
+        db_token = validate_database_token("database_token", database_token)
         normalized_project_id = validate_uuid_like("project_id", project_id)
         normalized_search = validate_optional_text("search", search, max_length=128)
         normalized_status = validate_optional_text("status", status, max_length=64)
@@ -266,7 +271,7 @@ def register(mcp: FastMCP, handler_registry: dict | None = None) -> None:
         page_index: int | str | None = None,
         page_size: int | str | None = None,
     ) -> dict:
-        db_token = validate_uuid_like("database_token", database_token)
+        db_token = validate_database_token("database_token", database_token)
         normalized_contract_id = validate_uuid_like("contract_id", contract_id)
         normalized_search = validate_optional_text("search", search, max_length=128)
         normalized_status = validate_optional_text("status", status, max_length=64)
@@ -305,7 +310,7 @@ def register(mcp: FastMCP, handler_registry: dict | None = None) -> None:
         return {"pcos": paged["items"], "pagination": paged["pagination"]}
 
     async def _get_pco(database_token: str, pco_id: str) -> dict:
-        db_token = validate_uuid_like("database_token", database_token)
+        db_token = validate_database_token("database_token", database_token)
         normalized_pco_id = validate_uuid_like("pco_id", pco_id)
         return {"pco": await _client.get_pco(db_token, normalized_pco_id)}
 
@@ -316,7 +321,7 @@ def register(mcp: FastMCP, handler_registry: dict | None = None) -> None:
         page_index: int | str | None = None,
         page_size: int | str | None = None,
     ) -> dict:
-        db_token = validate_uuid_like("database_token", database_token)
+        db_token = validate_database_token("database_token", database_token)
         normalized_contract_id = validate_uuid_like("contract_id", contract_id)
         data = await _client.get_contract_cost_distribution(db_token, normalized_contract_id)
         paged = paginate_items(normalize_list(data), page_index=page_index, page_size=page_size)
@@ -329,7 +334,7 @@ def register(mcp: FastMCP, handler_registry: dict | None = None) -> None:
         page_index: int | str | None = None,
         page_size: int | str | None = None,
     ) -> dict:
-        db_token = validate_uuid_like("database_token", database_token)
+        db_token = validate_database_token("database_token", database_token)
         normalized_contract_id = validate_uuid_like("contract_id", contract_id)
         data = await _client.get_contract_quote_labels(db_token, normalized_contract_id)
         paged = paginate_items(normalize_list(data), page_index=page_index, page_size=page_size)
@@ -342,7 +347,7 @@ def register(mcp: FastMCP, handler_registry: dict | None = None) -> None:
         page_index: int | str | None = None,
         page_size: int | str | None = None,
     ) -> dict:
-        db_token = validate_uuid_like("database_token", database_token)
+        db_token = validate_database_token("database_token", database_token)
         normalized_contract_id = validate_uuid_like("contract_id", contract_id)
         data = await _client.get_contract_subcontract_labels(db_token, normalized_contract_id)
         paged = paginate_items(normalize_list(data), page_index=page_index, page_size=page_size)
@@ -355,14 +360,14 @@ def register(mcp: FastMCP, handler_registry: dict | None = None) -> None:
         page_index: int | str | None = None,
         page_size: int | str | None = None,
     ) -> dict:
-        db_token = validate_uuid_like("database_token", database_token)
+        db_token = validate_database_token("database_token", database_token)
         normalized_contract_id = validate_uuid_like("contract_id", contract_id)
         data = await _client.get_contract_statuses(db_token, normalized_contract_id)
         paged = paginate_items(normalize_list(data), page_index=page_index, page_size=page_size)
         return {"statuses": paged["items"], "pagination": paged["pagination"]}
 
     async def _trigger_pco_extension_file(database_token: str, pco_id: str, connection_id: str) -> dict:
-        db_token = validate_uuid_like("database_token", database_token)
+        db_token = validate_database_token("database_token", database_token)
         normalized_pco_id = validate_uuid_like("pco_id", pco_id)
         normalized_connection_id = validate_required_text("connection_id", connection_id, max_length=512)
         return {

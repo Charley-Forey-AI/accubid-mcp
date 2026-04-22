@@ -8,7 +8,12 @@ from ..client import AccubidClient
 from ..pagination import normalize_list, paginate_items
 from ..querying import apply_search, apply_sort
 from ..tool_runtime import execute_tool
-from ..validation import validate_optional_text, validate_required_text, validate_uuid_like
+from ..validation import (
+    validate_database_token,
+    validate_optional_text,
+    validate_required_text,
+    validate_uuid_like,
+)
 
 _client: AccubidClient | None = None
 
@@ -157,7 +162,7 @@ def register(mcp: FastMCP, handler_registry: dict | None = None) -> None:
         page_index: int | str | None = None,
         page_size: int | str | None = None,
     ) -> dict:
-        db_token = validate_uuid_like("database_token", database_token)
+        db_token = validate_database_token("database_token", database_token)
         normalized_parent_id = validate_optional_text("parent_folder_id", parent_folder_id)
         parent_id = (
             validate_uuid_like("parent_folder_id", normalized_parent_id)
@@ -175,7 +180,7 @@ def register(mcp: FastMCP, handler_registry: dict | None = None) -> None:
     ) -> dict:
         normalized_parent_id = validate_optional_text("parent_folder_id", parent_folder_id)
         payload = {
-            "databaseToken": validate_uuid_like("database_token", database_token),
+            "databaseToken": validate_database_token("database_token", database_token),
             "description": validate_required_text("description", description),
             "parentFolderID": (
                 validate_uuid_like("parent_folder_id", normalized_parent_id)
@@ -194,7 +199,7 @@ def register(mcp: FastMCP, handler_registry: dict | None = None) -> None:
         page_index: int | str | None = None,
         page_size: int | str | None = None,
     ) -> dict:
-        db_token = validate_uuid_like("database_token", database_token)
+        db_token = validate_database_token("database_token", database_token)
         normalized_search = validate_optional_text("search", search, max_length=128)
         normalized_sort_by = validate_optional_text("sort_by", sort_by, max_length=64)
         normalized_sort_direction = validate_optional_text("sort_direction", sort_direction, max_length=8) or "asc"
@@ -224,13 +229,13 @@ def register(mcp: FastMCP, handler_registry: dict | None = None) -> None:
         return {"projects": paged["items"], "pagination": paged["pagination"]}
 
     async def _get_project(database_token: str, project_id: str) -> dict:
-        db_token = validate_uuid_like("database_token", database_token)
+        db_token = validate_database_token("database_token", database_token)
         normalized_project_id = validate_uuid_like("project_id", project_id)
         return {"project": await _client.get_project(db_token, normalized_project_id)}
 
     async def _create_project(database_token: str, folder_id: str, name: str, number: str) -> dict:
         payload = {
-            "databaseToken": validate_uuid_like("database_token", database_token),
+            "databaseToken": validate_database_token("database_token", database_token),
             "folderID": validate_uuid_like("folder_id", folder_id),
             "name": validate_required_text("name", name),
             "number": validate_required_text("number", number),
@@ -246,7 +251,7 @@ def register(mcp: FastMCP, handler_registry: dict | None = None) -> None:
         page_index: int | str | None = None,
         page_size: int | str | None = None,
     ) -> dict:
-        db_token = validate_uuid_like("database_token", database_token)
+        db_token = validate_database_token("database_token", database_token)
         normalized_search = validate_optional_text("search", search, max_length=128)
         normalized_sort_by = validate_optional_text("sort_by", sort_by, max_length=64)
         normalized_sort_direction = validate_optional_text("sort_direction", sort_direction, max_length=8) or "asc"
@@ -281,7 +286,7 @@ def register(mcp: FastMCP, handler_registry: dict | None = None) -> None:
         page_index: int | str | None = None,
         page_size: int | str | None = None,
     ) -> dict:
-        db_token = validate_uuid_like("database_token", database_token)
+        db_token = validate_database_token("database_token", database_token)
         data = await _client.get_project_estimate_bid_summaries(db_token)
         paged = paginate_items(normalize_list(data), page_index=page_index, page_size=page_size)
         return {"items": paged["items"], "pagination": paged["pagination"]}

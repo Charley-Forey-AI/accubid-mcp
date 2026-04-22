@@ -1,6 +1,7 @@
 from src.errors import ValidationError
 from src.validation import (
     normalize_yyyymmdd,
+    validate_database_token,
     validate_optional_int,
     validate_optional_int_from_any,
     validate_optional_text,
@@ -67,3 +68,20 @@ def test_normalize_yyyymmdd_accepts_iso_format() -> None:
 
 def test_validate_uuid_like() -> None:
     assert validate_uuid_like("project_id", "123e4567-e89b-12d3-a456-426614174000")
+
+
+def test_validate_database_token_accepts_uuid() -> None:
+    assert (
+        validate_database_token(
+            "database_token", "123e4567-e89b-12d3-a456-426614174000"
+        )
+        == "123e4567-e89b-12d3-a456-426614174000"
+    )
+
+
+def test_validate_database_token_accepts_opaque_accubid_token() -> None:
+    opaque = (
+        "bvu2wLp1sfCMYa_DTlqhB9vhn0zEMBIVJgz3h3JVXXcDGAvK5Ufp-cs9TnsUhGgs"
+        "AjfchdHCjYGzfsOcfHlLmw"
+    )
+    assert validate_database_token("database_token", opaque) == opaque

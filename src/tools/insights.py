@@ -11,7 +11,12 @@ from ..concurrency import run_bounded
 from ..pagination import normalize_list, paginate_items
 from ..querying import first_present
 from ..tool_runtime import execute_tool
-from ..validation import normalize_yyyymmdd, validate_optional_text, validate_uuid_like
+from ..validation import (
+    normalize_yyyymmdd,
+    validate_database_token,
+    validate_optional_text,
+    validate_uuid_like,
+)
 
 _client: AccubidClient | None = None
 
@@ -116,7 +121,7 @@ def register(mcp: FastMCP, handler_registry: dict | None = None) -> None:
         page_index: int | str | None = None,
         page_size: int | str | None = None,
     ) -> dict:
-        db_token = validate_uuid_like("database_token", database_token)
+        db_token = validate_database_token("database_token", database_token)
         normalized_start_date = normalize_yyyymmdd("start_date", start_date)
         normalized_end_date = normalize_yyyymmdd("end_date", end_date or normalized_start_date)
 
@@ -164,7 +169,7 @@ def register(mcp: FastMCP, handler_registry: dict | None = None) -> None:
         bid_summary_id: str | None = None,
         include_first_breakdown_page: bool = False,
     ) -> dict:
-        db_token = validate_uuid_like("database_token", database_token)
+        db_token = validate_database_token("database_token", database_token)
         normalized_estimate_id = validate_uuid_like("estimate_id", estimate_id)
         estimate, views_raw = await run_bounded(
             [
@@ -230,7 +235,7 @@ def register(mcp: FastMCP, handler_registry: dict | None = None) -> None:
         page_index: int | str | None = None,
         page_size: int | str | None = None,
     ) -> dict:
-        db_token = validate_uuid_like("database_token", database_token)
+        db_token = validate_database_token("database_token", database_token)
         normalized_project_id = validate_uuid_like("project_id", project_id)
         normalized_contract_id = validate_optional_text("contract_id", contract_id)
         selected_contract_id = (

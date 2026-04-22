@@ -6,7 +6,11 @@ from fastmcp import FastMCP
 from ..client import AccubidClient
 from ..pagination import normalize_list, paginate_items
 from ..tool_runtime import execute_tool
-from ..validation import validate_optional_int_from_any, validate_uuid_like
+from ..validation import (
+    validate_database_token,
+    validate_optional_int_from_any,
+    validate_uuid_like,
+)
 
 _client: AccubidClient | None = None
 
@@ -77,7 +81,7 @@ def register(mcp: FastMCP, handler_registry: dict | None = None) -> None:
         )
 
     async def _get_final_price(database_token: str, bid_summary_id: str) -> dict:
-        db_token = validate_uuid_like("database_token", database_token)
+        db_token = validate_database_token("database_token", database_token)
         normalized_bid_summary_id = validate_uuid_like("bid_summary_id", bid_summary_id)
         return {"final_price": await _client.get_final_price(db_token, normalized_bid_summary_id)}
 
@@ -88,7 +92,7 @@ def register(mcp: FastMCP, handler_registry: dict | None = None) -> None:
         page_index: int | str | None = None,
         page_size: int | str | None = None,
     ) -> dict:
-        db_token = validate_uuid_like("database_token", database_token)
+        db_token = validate_database_token("database_token", database_token)
         normalized_estimate_id = validate_uuid_like("estimate_id", estimate_id)
         data = await _client.get_bid_breakdown_views(db_token, normalized_estimate_id)
         paged = paginate_items(normalize_list(data), page_index=page_index, page_size=page_size)
@@ -100,7 +104,7 @@ def register(mcp: FastMCP, handler_registry: dict | None = None) -> None:
         bid_breakdown_view_id: str,
         page_index: int | str | None = None,
     ) -> dict:
-        db_token = validate_uuid_like("database_token", database_token)
+        db_token = validate_database_token("database_token", database_token)
         normalized_bid_summary_id = validate_uuid_like("bid_summary_id", bid_summary_id)
         normalized_view_id = validate_uuid_like("bid_breakdown_view_id", bid_breakdown_view_id)
         normalized_page_index = validate_optional_int_from_any("page_index", page_index, min_value=0)

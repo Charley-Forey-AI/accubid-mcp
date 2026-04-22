@@ -2,6 +2,8 @@
 
 ## 0.3.0 - 2026-04-20
 
+- **`validate_database_token`** accepts opaque Accubid database tokens (e.g. from list-databases), not only UUID-shaped IDs.
+
 - Optional **`ACCUBID_USE_DIRECT_SERVICES`** + **`ACCUBID_DIRECT_PLATFORM_HOST`** to call **`anywhereservices.trimbleplatform.net`** microservices (POC interim) instead of **`cloud.api.trimble.com`**; maps Database list to **`/databaseservice/Databases`**.
 
 - **Breaking:** Authentication is **on-behalf-of only** (RFC 8693 token exchange). Removed `ACCUBID_AUTH_MODE`, server/hybrid OAuth, PKCE `accubid-mcp-oauth-login`, JWKS delegated validation, and `trimble-id` / `PyJWT` dependencies.

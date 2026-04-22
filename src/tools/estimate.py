@@ -10,6 +10,7 @@ from ..querying import apply_search, apply_sort
 from ..tool_runtime import execute_tool
 from ..validation import (
     normalize_yyyymmdd,
+    validate_database_token,
     validate_optional_text,
     validate_required_text,
     validate_uuid_like,
@@ -159,7 +160,7 @@ def register(mcp: FastMCP, handler_registry: dict | None = None) -> None:
         page_index: int | str | None = None,
         page_size: int | str | None = None,
     ) -> dict:
-        db_token = validate_uuid_like("database_token", database_token)
+        db_token = validate_database_token("database_token", database_token)
         normalized_project_id = validate_uuid_like("project_id", project_id)
         normalized_search = validate_optional_text("search", search, max_length=128)
         normalized_sort_by = validate_optional_text("sort_by", sort_by, max_length=64)
@@ -191,7 +192,7 @@ def register(mcp: FastMCP, handler_registry: dict | None = None) -> None:
         return {"estimates": paged["items"], "pagination": paged["pagination"]}
 
     async def _get_estimate(database_token: str, estimate_id: str) -> dict:
-        db_token = validate_uuid_like("database_token", database_token)
+        db_token = validate_database_token("database_token", database_token)
         normalized_estimate_id = validate_uuid_like("estimate_id", estimate_id)
         return {"estimate": await _client.get_estimate(db_token, normalized_estimate_id)}
 
@@ -204,7 +205,7 @@ def register(mcp: FastMCP, handler_registry: dict | None = None) -> None:
         copy_date_from_project: bool = True,
     ) -> dict:
         payload = {
-            "databaseToken": validate_uuid_like("database_token", database_token),
+            "databaseToken": validate_database_token("database_token", database_token),
             "projectID": validate_uuid_like("project_id", project_id),
             "name": validate_required_text("name", name),
             "number": validate_required_text("number", number),
@@ -221,7 +222,7 @@ def register(mcp: FastMCP, handler_registry: dict | None = None) -> None:
         page_index: int | str | None = None,
         page_size: int | str | None = None,
     ) -> dict:
-        db_token = validate_uuid_like("database_token", database_token)
+        db_token = validate_database_token("database_token", database_token)
         normalized_start_date = normalize_yyyymmdd("start_date", start_date)
         normalized_end_date = normalize_yyyymmdd("end_date", end_date)
         data = await _client.get_estimates_by_due_date(db_token, normalized_start_date, normalized_end_date)
@@ -234,7 +235,7 @@ def register(mcp: FastMCP, handler_registry: dict | None = None) -> None:
         connection_id: str,
         bid_summary_id: Optional[str] = None,
     ) -> dict:
-        db_token = validate_uuid_like("database_token", database_token)
+        db_token = validate_database_token("database_token", database_token)
         normalized_estimate_id = validate_uuid_like("estimate_id", estimate_id)
         normalized_connection_id = validate_required_text("connection_id", connection_id, max_length=512)
         normalized_bid_summary_value = validate_optional_text("bid_summary_id", bid_summary_id)

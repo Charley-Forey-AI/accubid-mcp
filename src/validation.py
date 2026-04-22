@@ -9,6 +9,8 @@ from .errors import ValidationError
 
 _YYYYMMDD_RE = re.compile(r"^\d{8}$")
 _UUID_LIKE_RE = re.compile(r"^[A-Za-z0-9-]{8,128}$")
+# Opaque tokens from Accubid list-databases (URL-safe base64-ish; underscores, length >> UUID)
+_OPAQUE_DATABASE_TOKEN_RE = re.compile(r"^[-A-Za-z0-9_+=/]{8,512}$")
 
 
 def validate_required_text(name: str, value: str, max_length: int = 256) -> str:
@@ -147,3 +149,18 @@ def validate_uuid_like(name: str, value: str) -> str:
             details={"field": name},
         )
     return normalized
+
+
+def validate_database_token(name: str, value: str) -> str:
+    """Validate Accubid database_token path/query parameter.
+
+    Values may be standard UUID-shaped IDs or opaque strings returned by list-databases
+    (e.g. URL-safe base64 with underscores — not UUIDs).
+    """
+    normalized = validate_required_text(name, value, max_length=512)
+    if _UUID_LIKE_RE.match(normalized) or _OPAQUE_DATABASE_TOKEN_RE.match(normalized):
+        return normalized
+    raise ValidationError(
+        message=f"Invalid '{name}': expected UUID or Accubid database token.",
+        details={"field": name},
+    )
