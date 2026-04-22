@@ -42,6 +42,30 @@ class Config:
         "ACCUBID_API_BASE_URL",
         "https://cloud.api.trimble.com/anywhere",
     ).strip().rstrip("/")
+
+    # POC / interim: call Accubid microservices on anywhereservices.trimbleplatform.net instead of
+    # cloud.api.trimble.com (bypasses Console proxy subscription checks on the public cloud API).
+    ACCUBID_USE_DIRECT_SERVICES = env_truthy("ACCUBID_USE_DIRECT_SERVICES", default=False)
+    ACCUBID_DIRECT_PLATFORM_HOST = os.getenv(
+        "ACCUBID_DIRECT_PLATFORM_HOST",
+        "https://anywhereservices.trimbleplatform.net",
+    ).strip().rstrip("/")
+    ACCUBID_DIRECT_DATABASE_SERVICE_URL = os.getenv(
+        "ACCUBID_DIRECT_DATABASE_SERVICE_URL", ""
+    ).strip().rstrip("/")
+    ACCUBID_DIRECT_PROJECT_SERVICE_URL = os.getenv(
+        "ACCUBID_DIRECT_PROJECT_SERVICE_URL", ""
+    ).strip().rstrip("/")
+    ACCUBID_DIRECT_CLOSEOUT_SERVICE_URL = os.getenv(
+        "ACCUBID_DIRECT_CLOSEOUT_SERVICE_URL", ""
+    ).strip().rstrip("/")
+    ACCUBID_DIRECT_CHANGEORDER_SERVICE_URL = os.getenv(
+        "ACCUBID_DIRECT_CHANGEORDER_SERVICE_URL", ""
+    ).strip().rstrip("/")
+    ACCUBID_DIRECT_ESTIMATE_SERVICE_URL = os.getenv(
+        "ACCUBID_DIRECT_ESTIMATE_SERVICE_URL", ""
+    ).strip().rstrip("/")
+
     ACCUBID_API_VERSION_DATABASE = os.getenv("ACCUBID_API_VERSION_DATABASE", "v1").strip()
     ACCUBID_API_VERSION_ESTIMATE = os.getenv("ACCUBID_API_VERSION_ESTIMATE", "v1").strip()
     ACCUBID_API_VERSION_PROJECT = os.getenv("ACCUBID_API_VERSION_PROJECT", "v2").strip()
@@ -118,6 +142,48 @@ class Config:
         return env_truthy("ACCUBID_DEBUG_LOG_OUTBOUND_TOKEN")
 
     @classmethod
+    def use_direct_services(cls) -> bool:
+        """Use Trimble Platform direct service URLs (see ACCUBID_USE_DIRECT_SERVICES)."""
+        return cls.ACCUBID_USE_DIRECT_SERVICES
+
+    @classmethod
+    def _direct_base_for_area(cls, area: str) -> str:
+        """Per-service host path for direct calls (matches OpenAPI `servers` in accubid-api-docs)."""
+        override_map = {
+            "database": cls.ACCUBID_DIRECT_DATABASE_SERVICE_URL,
+            "project": cls.ACCUBID_DIRECT_PROJECT_SERVICE_URL,
+            "estimate": cls.ACCUBID_DIRECT_ESTIMATE_SERVICE_URL,
+            "closeout": cls.ACCUBID_DIRECT_CLOSEOUT_SERVICE_URL,
+            "changeorder": cls.ACCUBID_DIRECT_CHANGEORDER_SERVICE_URL,
+        }
+        ov = override_map.get(area, "")
+        if ov:
+            return ov.rstrip("/")
+        host = cls.ACCUBID_DIRECT_PLATFORM_HOST.rstrip("/")
+        if area == "estimate":
+            ver = cls.accubid_api_version_for_request(area, "/Estimate")
+            if ver == "v2":
+                return f"{host}/estimateservice/v2"
+            return f"{host}/estimateservice"
+        segment = {
+            "database": "/databaseservice",
+            "project": "/projectservice",
+            "closeout": "/closeoutservice",
+            "changeorder": "/changeorderservice",
+        }.get(area)
+        if not segment:
+            raise ValueError(f"Unknown Accubid API area for direct routing: {area}")
+        return f"{host}{segment}"
+
+    @classmethod
+    def _normalize_direct_endpoint_path(cls, area: str, endpoint_path: str) -> str:
+        """Map cloud-style paths to direct OpenAPI paths where they differ."""
+        path = endpoint_path if endpoint_path.startswith("/") else f"/{endpoint_path}"
+        if area == "database" and path.rstrip("/").lower() == "/databases":
+            return "/Databases"
+        return path
+
+    @classmethod
     def scope_string(cls) -> str:
         """Space-separated OAuth scope string for token exchange."""
         return " ".join(cls.accubid_scopes())
@@ -146,10 +212,14 @@ class Config:
     @classmethod
     def accubid_api_url(cls, area: str, endpoint_path: str) -> str:
         """Full Trimble Accubid Anywhere URL for one request."""
-        base = cls.ACCUBID_API_BASE_URL.rstrip("/")
+        if cls.use_direct_services():
+            base = cls._direct_base_for_area(area)
+            path = cls._normalize_direct_endpoint_path(area, endpoint_path)
+            return f"{base}{path}"
+        proxy_base = cls.ACCUBID_API_BASE_URL.rstrip("/")
         ver = cls.accubid_api_version_for_request(area, endpoint_path)
         path = endpoint_path if endpoint_path.startswith("/") else f"/{endpoint_path}"
-        return f"{base}/{area}/{ver}{path}"
+        return f"{proxy_base}/{area}/{ver}{path}"
 
     @classmethod
     def _validate_obo_credentials(cls) -> None:
@@ -195,8 +265,24 @@ class Config:
             raise ValueError("ACCUBID_CACHE_TTL_SECONDS must be >= 0")
         if cls.ACCUBID_COMPOSED_TOOL_CONCURRENCY < 1:
             raise ValueError("ACCUBID_COMPOSED_TOOL_CONCURRENCY must be >= 1")
-        if cls.ENV == "production" and not cls.ACCUBID_API_BASE_URL.startswith("https://"):
-            raise ValueError("ACCUBID_API_BASE_URL must use https:// in production")
+        if cls.ENV == "production":
+            if cls.use_direct_services():
+                if not cls.ACCUBID_DIRECT_PLATFORM_HOST.startswith("https://"):
+                    raise ValueError(
+                        "ACCUBID_DIRECT_PLATFORM_HOST must use https:// in production "
+                        "when ACCUBID_USE_DIRECT_SERVICES is enabled"
+                    )
+                for label, raw in (
+                    ("ACCUBID_DIRECT_DATABASE_SERVICE_URL", cls.ACCUBID_DIRECT_DATABASE_SERVICE_URL),
+                    ("ACCUBID_DIRECT_PROJECT_SERVICE_URL", cls.ACCUBID_DIRECT_PROJECT_SERVICE_URL),
+                    ("ACCUBID_DIRECT_ESTIMATE_SERVICE_URL", cls.ACCUBID_DIRECT_ESTIMATE_SERVICE_URL),
+                    ("ACCUBID_DIRECT_CLOSEOUT_SERVICE_URL", cls.ACCUBID_DIRECT_CLOSEOUT_SERVICE_URL),
+                    ("ACCUBID_DIRECT_CHANGEORDER_SERVICE_URL", cls.ACCUBID_DIRECT_CHANGEORDER_SERVICE_URL),
+                ):
+                    if raw and not raw.startswith("https://"):
+                        raise ValueError(f"{label} must use https:// in production")
+            elif not cls.ACCUBID_API_BASE_URL.startswith("https://"):
+                raise ValueError("ACCUBID_API_BASE_URL must use https:// in production")
         if not cls.ACCUBID_CLIENT_RETRYABLE_STATUS_CODES:
             logger.warning("No retryable status codes configured.")
 

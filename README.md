@@ -33,6 +33,19 @@ MCP server for Accubid Anywhere APIs with Trimble Identity authentication.
 
 Postman **authorization-code** tokens are issued directly to your app; the MCP path uses **token exchange** instead. Both should target the **same `CLIENT_ID`** and compatible **scopes** for Accubid to accept the outbound bearer.
 
+### Direct service URLs (POC / interim)
+
+If **`cloud.api.trimble.com`** returns **900909** because the **Console proxy** requires API product subscription and the **AI Agentic Studio** context cannot satisfy that, Accubid may direct you to call **direct microservice** hosts for development (e.g. `https://anywhereservices.trimbleplatform.net/...`) until Identity/Console provides a supported way to use the public proxy with on-behalf-of tokens.
+
+Set in `.env`:
+
+- **`ACCUBID_USE_DIRECT_SERVICES=true`**
+- **`ACCUBID_DIRECT_PLATFORM_HOST=https://anywhereservices.trimbleplatform.net`** (default if unset)
+
+The MCP builds service roots per area (`databaseservice`, `projectservice`, `estimateservice`[/`v2`], `closeoutservice`, `changeorderservice`). List databases maps **`/databases` → `/Databases`** to match the direct OpenAPI. Optional **`ACCUBID_DIRECT_*_SERVICE_URL`** vars override individual bases.
+
+**Revert to proxy URLs** (`ACCUBID_USE_DIRECT_SERVICES=false`) for production-aligned behavior once Trimble entitlement is resolved.
+
 ## Setup
 
 1. Copy `.env.example` to `.env` and set **`CLIENT_ID`**, **`CLIENT_SECRET`**, **`ACCUBID_SCOPE`**.

@@ -2,6 +2,8 @@
 
 ## 0.3.0 - 2026-04-20
 
+- Optional **`ACCUBID_USE_DIRECT_SERVICES`** + **`ACCUBID_DIRECT_PLATFORM_HOST`** to call **`anywhereservices.trimbleplatform.net`** microservices (POC interim) instead of **`cloud.api.trimble.com`**; maps Database list to **`/databaseservice/Databases`**.
+
 - **Breaking:** Authentication is **on-behalf-of only** (RFC 8693 token exchange). Removed `ACCUBID_AUTH_MODE`, server/hybrid OAuth, PKCE `accubid-mcp-oauth-login`, JWKS delegated validation, and `trimble-id` / `PyJWT` dependencies.
 - Agent Studio must send `Authorization: Bearer` on each streamable HTTP request; `CLIENT_ID` / `CLIENT_SECRET` / `ACCUBID_SCOPE` are required in `.env`.
 - Documented that **Trimble Identity rejects** optional **`resource`** and **`audience`** parameters on token exchange (HTTP 400); do not set `ACCUBID_TOKEN_EXCHANGE_RESOURCE` or `ACCUBID_TOKEN_EXCHANGE_AUDIENCE`.

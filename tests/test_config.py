@@ -116,6 +116,60 @@ def test_accubid_api_url_per_area() -> None:
         ) = original
 
 
+def test_accubid_api_url_direct_trimble_platform() -> None:
+    """Direct hosts omit cloud .../area/v1 segment; Database uses GET /Databases."""
+    original = (
+        Config.ACCUBID_USE_DIRECT_SERVICES,
+        Config.ACCUBID_DIRECT_PLATFORM_HOST,
+        Config.ACCUBID_API_VERSION_ESTIMATE,
+        Config.ACCUBID_DIRECT_DATABASE_SERVICE_URL,
+        Config.ACCUBID_DIRECT_PROJECT_SERVICE_URL,
+        Config.ACCUBID_DIRECT_CLOSEOUT_SERVICE_URL,
+        Config.ACCUBID_DIRECT_CHANGEORDER_SERVICE_URL,
+        Config.ACCUBID_DIRECT_ESTIMATE_SERVICE_URL,
+    )
+    try:
+        Config.ACCUBID_USE_DIRECT_SERVICES = True
+        Config.ACCUBID_DIRECT_PLATFORM_HOST = "https://anywhereservices.trimbleplatform.net"
+        Config.ACCUBID_DIRECT_DATABASE_SERVICE_URL = ""
+        Config.ACCUBID_DIRECT_PROJECT_SERVICE_URL = ""
+        Config.ACCUBID_DIRECT_CLOSEOUT_SERVICE_URL = ""
+        Config.ACCUBID_DIRECT_CHANGEORDER_SERVICE_URL = ""
+        Config.ACCUBID_DIRECT_ESTIMATE_SERVICE_URL = ""
+        Config.ACCUBID_API_VERSION_ESTIMATE = "v1"
+        assert (
+            Config.accubid_api_url("database", "/databases")
+            == "https://anywhereservices.trimbleplatform.net/databaseservice/Databases"
+        )
+        assert (
+            Config.accubid_api_url("project", "/Projects/db-token")
+            == "https://anywhereservices.trimbleplatform.net/projectservice/Projects/db-token"
+        )
+        Config.ACCUBID_API_VERSION_ESTIMATE = "v2"
+        assert (
+            Config.accubid_api_url("estimate", "/Estimate/db/est")
+            == "https://anywhereservices.trimbleplatform.net/estimateservice/v2/Estimate/db/est"
+        )
+        Config.ACCUBID_DIRECT_DATABASE_SERVICE_URL = (
+            "https://anywhereservices.trimbleplatform.net/databaseservice"
+        )
+        assert (
+            Config.accubid_api_url("database", "/databases")
+            == "https://anywhereservices.trimbleplatform.net/databaseservice/Databases"
+        )
+    finally:
+        (
+            Config.ACCUBID_USE_DIRECT_SERVICES,
+            Config.ACCUBID_DIRECT_PLATFORM_HOST,
+            Config.ACCUBID_API_VERSION_ESTIMATE,
+            Config.ACCUBID_DIRECT_DATABASE_SERVICE_URL,
+            Config.ACCUBID_DIRECT_PROJECT_SERVICE_URL,
+            Config.ACCUBID_DIRECT_CLOSEOUT_SERVICE_URL,
+            Config.ACCUBID_DIRECT_CHANGEORDER_SERVICE_URL,
+            Config.ACCUBID_DIRECT_ESTIMATE_SERVICE_URL,
+        ) = original
+
+
 def test_validate_rejects_bad_circuit_breaker() -> None:
     original = Config.ACCUBID_CIRCUIT_BREAKER_FAILURES
     Config.ACCUBID_CIRCUIT_BREAKER_FAILURES = 0

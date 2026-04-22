@@ -130,6 +130,10 @@ def create_app() -> AppContainer:
         base_payload = {
             "capabilities": load_capabilities(),
             "api_base_url": Config.ACCUBID_API_BASE_URL,
+            "accubid_use_direct_services": Config.use_direct_services(),
+            "accubid_direct_platform_host": Config.ACCUBID_DIRECT_PLATFORM_HOST
+            if Config.use_direct_services()
+            else None,
             "api_area_versions": {
                 "database": Config.ACCUBID_API_VERSION_DATABASE,
                 "estimate": Config.ACCUBID_API_VERSION_ESTIMATE,
@@ -230,6 +234,15 @@ def run_http() -> None:
         "Trimble Developer Console (token exchange enabled, Accubid subscribed).",
         Config.CLIENT_ID or "(unset)",
     )
+    if Config.use_direct_services():
+        logger.warning(
+            "ACCUBID_USE_DIRECT_SERVICES enabled: calling anywhereservices.trimbleplatform.net "
+            "(POC / interim). Revert to cloud.api.trimble.com when Trimble Console proxy subscription is fixed."
+        )
+        logger.info(
+            "Direct service host=%s (override per-area with ACCUBID_DIRECT_*_SERVICE_URL if needed)",
+            Config.ACCUBID_DIRECT_PLATFORM_HOST,
+        )
     if os.getenv("ACCUBID_TOKEN_EXCHANGE_RESOURCE", "").strip():
         logger.warning(
             "ACCUBID_TOKEN_EXCHANGE_RESOURCE is set — Trimble Identity rejects the OAuth "
