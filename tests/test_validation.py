@@ -70,6 +70,12 @@ def test_validate_uuid_like() -> None:
     assert validate_uuid_like("project_id", "123e4567-e89b-12d3-a456-426614174000")
 
 
+def test_validate_uuid_like_accepts_accubid_folder_id_with_underscores() -> None:
+    """Opaque Accubid IDs may contain underscores (URL-safe base64)."""
+    fid = "nJFXP8bYr8xmU_PCxWwP6g"
+    assert validate_uuid_like("folder_id", fid) == fid
+
+
 def test_validate_database_token_accepts_uuid() -> None:
     assert (
         validate_database_token(

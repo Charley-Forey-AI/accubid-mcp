@@ -8,7 +8,8 @@ from datetime import datetime
 from .errors import ValidationError
 
 _YYYYMMDD_RE = re.compile(r"^\d{8}$")
-_UUID_LIKE_RE = re.compile(r"^[A-Za-z0-9-]{8,128}$")
+# Accubid folder/project/estimate IDs are often URL-safe base64 (includes "_" and "-").
+_UUID_LIKE_RE = re.compile(r"^[A-Za-z0-9_-]{8,128}$")
 # Opaque tokens from Accubid list-databases (URL-safe base64-ish; underscores, length >> UUID)
 _OPAQUE_DATABASE_TOKEN_RE = re.compile(r"^[-A-Za-z0-9_+=/]{8,512}$")
 
